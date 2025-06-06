@@ -4,8 +4,9 @@ import { Sidebar } from '../layout/Sidebar';
 import { ProjectView } from '../project/ProjectView';
 import { BriefingsList } from '../briefings/BriefingsList';
 import { ProjectCreationModal } from '../project/ProjectCreationModal';
-import { Menu, X, Plus } from 'lucide-react';
+import { Menu, X, Plus, FolderOpen, FileCheck, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface Project {
   id: string;
@@ -26,71 +27,71 @@ interface Briefing {
 const mockProjects: Project[] = [
   {
     id: '1',
-    name: 'Q4 Financial Performance Review',
-    description: 'Comprehensive quarterly financial analysis including revenue performance, cost optimization opportunities, budget variance analysis, cash flow projections, and strategic recommendations for executive leadership team decision-making.',
+    name: 'Q4 Financial Review',
+    description: 'Quarterly financial analysis and performance review',
     fileCount: 8,
     createdAt: '2024-01-15'
   },
   {
     id: '2',
-    name: 'Global Product Launch Strategy Initiative',
-    description: 'Market research analysis, competitive positioning study, customer segmentation data, pricing strategy models, and go-to-market execution plans for the upcoming product portfolio launch across North American and European markets.',
-    fileCount: 12,
+    name: 'Product Launch Strategy',
+    description: 'Global product launch planning and execution',
+    fileCount: 6,
     createdAt: '2024-01-10'
   },
   {
     id: '3',
-    name: 'Digital Transformation Roadmap',
-    description: 'Technology infrastructure assessment, digital capabilities gap analysis, implementation timeline, resource requirements, and change management strategy for enterprise-wide digital transformation initiative.',
+    name: 'Digital Transformation',
+    description: 'Enterprise digital transformation roadmap',
     fileCount: 15,
     createdAt: '2024-01-08'
   },
   {
     id: '4',
-    name: 'Customer Experience Optimization',
-    description: 'Customer journey mapping, satisfaction survey results, touchpoint analysis, service quality metrics, and improvement recommendations to enhance overall customer experience and retention rates.',
+    name: 'Customer Experience',
+    description: 'Customer journey optimization initiative',
     fileCount: 9,
     createdAt: '2024-01-05'
   },
   {
     id: '5',
-    name: 'Supply Chain Risk Assessment',
-    description: 'Vendor evaluation reports, logistics performance analysis, inventory optimization studies, risk mitigation strategies, and contingency planning for global supply chain operations.',
+    name: 'Supply Chain Assessment',
+    description: 'Global supply chain risk evaluation',
     fileCount: 11,
     createdAt: '2024-01-03'
   },
   {
     id: '6',
-    name: 'Talent Acquisition & Retention',
-    description: 'Recruitment pipeline analysis, employee satisfaction surveys, compensation benchmarking, skills gap assessment, and strategic workforce planning for organizational growth.',
+    name: 'Talent Strategy',
+    description: 'Workforce planning and retention program',
     fileCount: 7,
     createdAt: '2024-01-01'
   },
   {
     id: '7',
-    name: 'Market Expansion Feasibility',
-    description: 'Geographic market analysis, regulatory compliance requirements, competitive landscape evaluation, and financial projections for potential expansion into Asian markets.',
+    name: 'Market Expansion',
+    description: 'Asian market entry feasibility study',
     fileCount: 13,
     createdAt: '2023-12-28'
   },
   {
     id: '8',
-    name: 'Sustainability Initiative Planning',
-    description: 'Environmental impact assessment, carbon footprint analysis, sustainable practices implementation plan, and ESG reporting framework development for corporate responsibility goals.',
+    name: 'Sustainability Initiative',
+    description: 'Environmental impact and ESG planning',
     fileCount: 6,
     createdAt: '2023-12-25'
   },
   {
     id: '9',
-    name: 'Cybersecurity Infrastructure Audit',
-    description: 'Security vulnerability assessment, threat landscape analysis, compliance evaluation, incident response procedures, and recommendations for strengthening cybersecurity posture.',
+    name: 'Security Audit',
+    description: 'Cybersecurity infrastructure assessment',
     fileCount: 10,
     createdAt: '2023-12-22'
   },
   {
     id: '10',
-    name: 'Innovation Lab Research Portfolio',
-    description: 'R&D project evaluation, technology trend analysis, innovation pipeline assessment, patent portfolio review, and strategic recommendations for future research investments.',
+    name: 'Innovation Portfolio',
+    description: 'R&D and technology investment review',
     fileCount: 14,
     createdAt: '2023-12-20'
   }
@@ -100,21 +101,21 @@ const mockBriefings: Briefing[] = [
   {
     id: '1',
     title: 'Q4 Financial Performance Executive Summary',
-    projectName: 'Q4 Financial Performance Review',
+    projectName: 'Q4 Financial Review',
     createdAt: '2024-01-15',
     summary: 'Q4 revenue exceeded targets by 12% with strong performance across all business units. Operating margins improved by 3.2% through successful cost optimization initiatives.'
   },
   {
     id: '2',
     title: 'Digital Transformation Strategic Roadmap',
-    projectName: 'Digital Transformation Roadmap',
+    projectName: 'Digital Transformation',
     createdAt: '2024-01-12',
     summary: 'Comprehensive 18-month digital transformation plan with phased implementation approach, focusing on cloud migration, process automation, and data analytics capabilities.'
   },
   {
     id: '3',
     title: 'Market Expansion Risk Assessment',
-    projectName: 'Market Expansion Feasibility',
+    projectName: 'Market Expansion',
     createdAt: '2024-01-09',
     summary: 'Asian market expansion shows strong potential with estimated ROI of 25% over 3 years. Key risks identified include regulatory compliance and local partnership requirements.'
   }
@@ -143,6 +144,11 @@ export const Dashboard: React.FC = () => {
 
   const selectedProject = mockProjects.find(p => p.id === activeProject);
 
+  // Analytics calculations
+  const totalProjects = mockProjects.length;
+  const completedProjects = mockBriefings.length;
+  const inProgressProjects = totalProjects - completedProjects;
+
   // Get current date formatted
   const currentDate = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
@@ -152,7 +158,7 @@ export const Dashboard: React.FC = () => {
   });
 
   return (
-    <div className="h-screen bg-gray-50 flex">
+    <div className="h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex">
       {/* Mobile menu button */}
       <div className="lg:hidden fixed top-4 left-4 z-50">
         <Button
@@ -196,13 +202,58 @@ export const Dashboard: React.FC = () => {
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-gray-500 mb-3">{currentDate}</p>
-                  <Button onClick={handleNewProject} className="flex items-center space-x-2">
+                  <Button onClick={handleNewProject} className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
                     <Plus className="w-4 h-4" />
                     <span>New Project</span>
                   </Button>
                 </div>
               </div>
-              <BriefingsList briefings={mockBriefings} />
+
+              {/* Analytics Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
+                    <FolderOpen className="h-4 w-4" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{totalProjects}</div>
+                    <p className="text-xs text-blue-100">Active workstreams</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white border-0">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Completed</CardTitle>
+                    <FileCheck className="h-4 w-4" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{completedProjects}</div>
+                    <p className="text-xs text-green-100">Briefings generated</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-to-br from-amber-500 to-orange-500 text-white border-0">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">In Progress</CardTitle>
+                    <Clock className="h-4 w-4" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{inProgressProjects}</div>
+                    <p className="text-xs text-amber-100">Ready for analysis</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <BriefingsList 
+                briefings={mockBriefings} 
+                onBriefingClick={(briefing) => {
+                  const project = mockProjects.find(p => p.name === briefing.projectName);
+                  if (project) {
+                    setActiveProject(project.id);
+                  }
+                }}
+              />
             </div>
           )}
         </div>
