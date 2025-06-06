@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { BriefingDisplay } from './BriefingDisplay';
-import { X } from 'lucide-react';
+import { X, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface BriefingNote {
@@ -26,12 +26,14 @@ interface BriefingModalProps {
   isOpen: boolean;
   onClose: () => void;
   briefing: BriefingNote | null;
+  onDownload?: () => void;
 }
 
 export const BriefingModal: React.FC<BriefingModalProps> = ({
   isOpen,
   onClose,
-  briefing
+  briefing,
+  onDownload
 }) => {
   if (!briefing) return null;
 
@@ -45,14 +47,27 @@ export const BriefingModal: React.FC<BriefingModalProps> = ({
               <DialogTitle className="text-xl font-bold text-gray-900">
                 {briefing.title}
               </DialogTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onClose}
-                className="h-8 w-8 p-0"
-              >
-                <X className="h-4 w-4" />
-              </Button>
+              <div className="flex items-center space-x-2">
+                {onDownload && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onDownload}
+                    className="flex items-center space-x-1"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Download</span>
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onClose}
+                  className="h-8 w-8 p-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </DialogHeader>
         </div>

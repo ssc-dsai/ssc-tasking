@@ -19,7 +19,7 @@ interface Project {
 interface Briefing {
   id: string;
   title: string;
-  projectName: string;
+  taskingName: string; // Updated to match the expected interface
   createdAt: string;
   summary: string;
 }
@@ -28,70 +28,70 @@ const mockProjects: Project[] = [
   {
     id: '1',
     name: 'Q4 Financial Review',
-    description: 'Quarterly financial analysis and performance review',
+    description: 'Comprehensive quarterly financial analysis including revenue performance, cost optimization, cash flow evaluation, and strategic financial planning for executive decision-making and stakeholder reporting.',
     fileCount: 8,
     createdAt: '2024-01-15'
   },
   {
     id: '2',
     name: 'Product Launch Strategy',
-    description: 'Global product launch planning and execution',
+    description: 'End-to-end global product launch planning encompassing market research, competitive analysis, go-to-market strategy, pricing models, distribution channels, and marketing campaign development.',
     fileCount: 6,
     createdAt: '2024-01-10'
   },
   {
     id: '3',
     name: 'Digital Transformation',
-    description: 'Enterprise digital transformation roadmap',
+    description: 'Enterprise-wide digital transformation initiative covering technology modernization, process automation, cloud migration, data analytics implementation, and organizational change management.',
     fileCount: 15,
     createdAt: '2024-01-08'
   },
   {
     id: '4',
     name: 'Customer Experience',
-    description: 'Customer journey optimization initiative',
+    description: 'Customer journey optimization project focused on touchpoint analysis, satisfaction metrics, service quality improvement, loyalty program development, and omnichannel experience enhancement.',
     fileCount: 9,
     createdAt: '2024-01-05'
   },
   {
     id: '5',
     name: 'Supply Chain Assessment',
-    description: 'Global supply chain risk evaluation',
+    description: 'Global supply chain risk evaluation and optimization including vendor assessment, logistics efficiency, inventory management, sustainability practices, and resilience planning.',
     fileCount: 11,
     createdAt: '2024-01-03'
   },
   {
     id: '6',
     name: 'Talent Strategy',
-    description: 'Workforce planning and retention program',
+    description: 'Comprehensive workforce planning initiative covering recruitment optimization, skill development programs, retention strategies, diversity and inclusion, and leadership development.',
     fileCount: 7,
     createdAt: '2024-01-01'
   },
   {
     id: '7',
     name: 'Market Expansion',
-    description: 'Asian market entry feasibility study',
+    description: 'Strategic market entry analysis for Asian markets including feasibility studies, regulatory compliance, partnership opportunities, localization requirements, and investment planning.',
     fileCount: 13,
     createdAt: '2023-12-28'
   },
   {
     id: '8',
     name: 'Sustainability Initiative',
-    description: 'Environmental impact and ESG planning',
+    description: 'Environmental impact assessment and ESG compliance program covering carbon footprint reduction, sustainable operations, regulatory adherence, and stakeholder engagement strategies.',
     fileCount: 6,
     createdAt: '2023-12-25'
   },
   {
     id: '9',
     name: 'Security Audit',
-    description: 'Cybersecurity infrastructure assessment',
+    description: 'Comprehensive cybersecurity infrastructure assessment including threat analysis, vulnerability testing, compliance evaluation, incident response planning, and security awareness training.',
     fileCount: 10,
     createdAt: '2023-12-22'
   },
   {
     id: '10',
     name: 'Innovation Portfolio',
-    description: 'R&D and technology investment review',
+    description: 'Research and development investment review covering technology roadmaps, innovation pipeline assessment, intellectual property strategy, and emerging technology evaluation.',
     fileCount: 14,
     createdAt: '2023-12-20'
   }
@@ -101,21 +101,21 @@ const mockBriefings: Briefing[] = [
   {
     id: '1',
     title: 'Q4 Financial Performance Executive Summary',
-    projectName: 'Q4 Financial Review',
+    taskingName: 'Q4 Financial Review', // Updated to taskingName
     createdAt: '2024-01-15',
     summary: 'Q4 revenue exceeded targets by 12% with strong performance across all business units. Operating margins improved by 3.2% through successful cost optimization initiatives.'
   },
   {
     id: '2',
     title: 'Digital Transformation Strategic Roadmap',
-    projectName: 'Digital Transformation',
+    taskingName: 'Digital Transformation', // Updated to taskingName
     createdAt: '2024-01-12',
     summary: 'Comprehensive 18-month digital transformation plan with phased implementation approach, focusing on cloud migration, process automation, and data analytics capabilities.'
   },
   {
     id: '3',
     title: 'Market Expansion Risk Assessment',
-    projectName: 'Market Expansion',
+    taskingName: 'Market Expansion', // Updated to taskingName
     createdAt: '2024-01-09',
     summary: 'Asian market expansion shows strong potential with estimated ROI of 25% over 3 years. Key risks identified include regulatory compliance and local partnership requirements.'
   }

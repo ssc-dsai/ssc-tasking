@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Sidebar } from '../components/layout/Sidebar';
 import { FileUpload } from '../components/project/FileUpload';
 import { FilesList } from '../components/project/FilesList';
 import { CompactBriefingChat } from '../components/project/CompactBriefingChat';
 import { BriefingDisplay } from '../components/briefings/BriefingDisplay';
 import { BriefingModal } from '../components/briefings/BriefingModal';
-import { Folder, Upload, FileText, Eye, ArrowLeft } from 'lucide-react';
+import { ProjectCreationModal } from '../components/project/ProjectCreationModal';
+import { Folder, Upload, FileText, Eye, Menu, X, Plus, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface Tasking {
@@ -30,6 +32,79 @@ interface ChatMessage {
   content: string;
   timestamp: string;
 }
+
+const mockTaskings: Tasking[] = [
+  {
+    id: '1',
+    name: 'Q4 Financial Review',
+    description: 'Comprehensive quarterly financial analysis including revenue performance, cost optimization, cash flow evaluation, and strategic financial planning for executive decision-making and stakeholder reporting.',
+    fileCount: 8,
+    createdAt: '2024-01-15'
+  },
+  {
+    id: '2',
+    name: 'Product Launch Strategy',
+    description: 'End-to-end global product launch planning encompassing market research, competitive analysis, go-to-market strategy, pricing models, distribution channels, and marketing campaign development.',
+    fileCount: 6,
+    createdAt: '2024-01-10'
+  },
+  {
+    id: '3',
+    name: 'Digital Transformation',
+    description: 'Enterprise-wide digital transformation initiative covering technology modernization, process automation, cloud migration, data analytics implementation, and organizational change management.',
+    fileCount: 15,
+    createdAt: '2024-01-08'
+  },
+  {
+    id: '4',
+    name: 'Customer Experience',
+    description: 'Customer journey optimization project focused on touchpoint analysis, satisfaction metrics, service quality improvement, loyalty program development, and omnichannel experience enhancement.',
+    fileCount: 9,
+    createdAt: '2024-01-05'
+  },
+  {
+    id: '5',
+    name: 'Supply Chain Assessment',
+    description: 'Global supply chain risk evaluation and optimization including vendor assessment, logistics efficiency, inventory management, sustainability practices, and resilience planning.',
+    fileCount: 11,
+    createdAt: '2024-01-03'
+  },
+  {
+    id: '6',
+    name: 'Talent Strategy',
+    description: 'Comprehensive workforce planning initiative covering recruitment optimization, skill development programs, retention strategies, diversity and inclusion, and leadership development.',
+    fileCount: 7,
+    createdAt: '2024-01-01'
+  },
+  {
+    id: '7',
+    name: 'Market Expansion',
+    description: 'Strategic market entry analysis for Asian markets including feasibility studies, regulatory compliance, partnership opportunities, localization requirements, and investment planning.',
+    fileCount: 13,
+    createdAt: '2023-12-28'
+  },
+  {
+    id: '8',
+    name: 'Sustainability Initiative',
+    description: 'Environmental impact assessment and ESG compliance program covering carbon footprint reduction, sustainable operations, regulatory adherence, and stakeholder engagement strategies.',
+    fileCount: 6,
+    createdAt: '2023-12-25'
+  },
+  {
+    id: '9',
+    name: 'Security Audit',
+    description: 'Comprehensive cybersecurity infrastructure assessment including threat analysis, vulnerability testing, compliance evaluation, incident response planning, and security awareness training.',
+    fileCount: 10,
+    createdAt: '2023-12-22'
+  },
+  {
+    id: '10',
+    name: 'Innovation Portfolio',
+    description: 'Research and development investment review covering technology roadmaps, innovation pipeline assessment, intellectual property strategy, and emerging technology evaluation.',
+    fileCount: 14,
+    createdAt: '2023-12-20'
+  }
+];
 
 // Mock files data with different sets for different projects
 const getFilesForTasking = (taskingId: string): TaskingFile[] => {
@@ -195,11 +270,15 @@ const TaskingView: React.FC = () => {
   const { taskingId } = useParams();
   const navigate = useNavigate();
   
-  // Mock tasking data
-  const mockTasking: Tasking = {
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+  
+  // Find the current tasking
+  const currentTasking = mockTaskings.find(t => t.id === taskingId) || {
     id: taskingId || '1',
     name: 'Q4 Financial Review',
-    description: 'Quarterly financial analysis and performance review',
+    description: 'Comprehensive quarterly financial analysis including revenue performance, cost optimization, cash flow evaluation, and strategic financial planning for executive decision-making and stakeholder reporting.',
     fileCount: 8,
     createdAt: '2024-01-15'
   };
@@ -329,132 +408,218 @@ const TaskingView: React.FC = () => {
     setIsGenerating(false);
   };
 
+  const handleDownloadBriefing = () => {
+    if (!generatedBriefing) return;
+    
+    const briefingText = `
+${generatedBriefing.title}
+Generated: ${generatedBriefing.createdAt}
+
+EXECUTIVE SUMMARY
+${generatedBriefing.summary}
+
+KEY INSIGHTS
+${generatedBriefing.keyPoints.map((point, i) => `${i + 1}. ${point}`).join('\n')}
+
+KEY RISKS
+${generatedBriefing.risks.map((risk, i) => `${i + 1}. ${risk}`).join('\n')}
+
+RECOMMENDATIONS
+${generatedBriefing.recommendations.map((rec, i) => `${i + 1}. ${rec}`).join('\n')}
+
+NEXT STEPS
+${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
+    `;
+    
+    const blob = new Blob([briefingText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${generatedBriefing.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleTaskingSelect = (taskingId: string) => {
+    navigate(`/taskings/${taskingId}`);
+    setIsMobileSidebarOpen(false);
+  };
+
+  const handleNewTasking = () => {
+    setIsProjectModalOpen(true);
+  };
+
+  const handleTaskingCreated = (tasking: Omit<Tasking, 'id' | 'createdAt'>) => {
+    console.log('New tasking created:', tasking);
+    setIsProjectModalOpen(false);
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      <div className="max-w-7xl mx-auto p-6 lg:p-8">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center space-x-4 mb-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/dashboard')}
-              className="flex items-center space-x-2"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back to Dashboard</span>
-            </Button>
-          </div>
-          
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-              <Folder className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{mockTasking.name}</h1>
-              <p className="text-gray-600">{mockTasking.description}</p>
-            </div>
-          </div>
-        </div>
+    <div className="h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex">
+      {/* Mobile menu button */}
+      <div className="lg:hidden fixed top-4 left-4 z-50">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+        >
+          {isMobileSidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+        </Button>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-220px)]">
-          {/* Left Column - Briefing Area */}
-          <div className="space-y-4 flex flex-col">
-            {/* Generated Briefing Display */}
-            {generatedBriefing ? (
-              <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-200 p-6 overflow-y-auto">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-6 h-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
-                      <FileText className="w-3 h-3 text-white" />
-                    </div>
-                    <h2 className="text-lg font-semibold text-gray-900">Generated Briefing</h2>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsBriefingModalOpen(true)}
-                    className="flex items-center space-x-1"
-                  >
-                    <Eye className="w-4 h-4" />
-                    <span>Full View</span>
-                  </Button>
-                </div>
-                <BriefingDisplay briefing={generatedBriefing} />
-              </div>
-            ) : (
-              <div className="flex-1 bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center">
-                <div className="text-center p-8">
-                  <div className="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <FileText className="w-8 h-8 text-gray-400" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No briefing generated yet</h3>
-                  <p className="text-gray-600">Upload files and use the assistant below to generate your first briefing.</p>
-                </div>
-              </div>
-            )}
+      {/* Mobile sidebar overlay */}
+      {isMobileSidebarOpen && (
+        <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40" onClick={() => setIsMobileSidebarOpen(false)} />
+      )}
 
-            {/* Chat Messages and Compact Briefing Chat */}
-            <div className="space-y-4">
-              {/* Chat History */}
-              {chatMessages.length > 0 && (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 max-h-48 overflow-y-auto">
-                  <h3 className="text-sm font-semibold text-gray-900 mb-3">Chat History</h3>
-                  <div className="space-y-3">
-                    {chatMessages.map((message) => (
-                      <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-xs px-3 py-2 rounded-lg text-sm ${
-                          message.type === 'user' 
-                            ? 'bg-blue-500 text-white' 
-                            : 'bg-gray-100 text-gray-900'
-                        }`}>
-                          <p>{message.content}</p>
-                          <p className={`text-xs mt-1 ${message.type === 'user' ? 'text-blue-100' : 'text-gray-500'}`}>
-                            {message.timestamp}
-                          </p>
-                        </div>
+      {/* Sidebar */}
+      <div className={`${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:relative z-50 transition-transform duration-300`}>
+        <Sidebar
+          projects={mockTaskings}
+          activeProject={taskingId || null}
+          onProjectSelect={handleTaskingSelect}
+          onNewProject={handleNewTasking}
+          isCollapsed={isSidebarCollapsed && !isMobileSidebarOpen}
+          onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        />
+      </div>
+
+      {/* Main content */}
+      <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 p-6 lg:p-8">
+          {/* Tasking Header */}
+          <div className="mb-6">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                <Folder className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">{currentTasking.name}</h1>
+                <p className="text-gray-600">{currentTasking.description}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-220px)]">
+            {/* Left Column - Briefing Area */}
+            <div className="space-y-4 flex flex-col">
+              {/* Generated Briefing Display - Limited to 40% height */}
+              {generatedBriefing ? (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 overflow-y-auto" style={{ maxHeight: '40%' }}>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-6 h-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                        <FileText className="w-3 h-3 text-white" />
                       </div>
-                    ))}
+                      <h2 className="text-lg font-semibold text-gray-900">Generated Briefing</h2>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleDownloadBriefing}
+                        className="flex items-center space-x-1"
+                      >
+                        <Download className="w-4 h-4" />
+                        <span>Download</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsBriefingModalOpen(true)}
+                        className="flex items-center space-x-1"
+                      >
+                        <Eye className="w-4 h-4" />
+                        <span>Full View</span>
+                      </Button>
+                    </div>
+                  </div>
+                  <BriefingDisplay briefing={generatedBriefing} />
+                </div>
+              ) : (
+                <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center" style={{ maxHeight: '40%' }}>
+                  <div className="text-center p-8">
+                    <div className="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-xl flex items-center justify-center mx-auto mb-4">
+                      <FileText className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No briefing generated yet</h3>
+                    <p className="text-gray-600">Upload files and use the assistant below to generate your first briefing.</p>
                   </div>
                 </div>
               )}
 
-              {/* Compact Briefing Chat */}
-              <CompactBriefingChat
-                onGenerate={handleGenerateBriefing}
-                isGenerating={isGenerating}
-                hasFiles={files.length > 0}
-              />
+              {/* Chat Messages and Compact Briefing Chat */}
+              <div className="flex-1 space-y-4 flex flex-col min-h-0">
+                {/* Chat History */}
+                {chatMessages.length > 0 && (
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex-1 overflow-y-auto">
+                    <h3 className="text-sm font-semibold text-gray-900 mb-3">Chat History</h3>
+                    <div className="space-y-3">
+                      {chatMessages.map((message) => (
+                        <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                          <div className={`max-w-xs px-3 py-2 rounded-lg text-sm ${
+                            message.type === 'user' 
+                              ? 'bg-blue-500 text-white' 
+                              : 'bg-gray-100 text-gray-900'
+                          }`}>
+                            <p>{message.content}</p>
+                            <p className={`text-xs mt-1 ${message.type === 'user' ? 'text-blue-100' : 'text-gray-500'}`}>
+                              {message.timestamp}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Compact Briefing Chat */}
+                <CompactBriefingChat
+                  onGenerate={handleGenerateBriefing}
+                  isGenerating={isGenerating}
+                  hasFiles={files.length > 0}
+                />
+              </div>
+            </div>
+
+            {/* Right Column - Tasking Files */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-6 h-6 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
+                  <Upload className="w-3 h-3 text-white" />
+                </div>
+                <h2 className="text-lg font-semibold text-gray-900">Tasking Files</h2>
+                <div className="ml-auto bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
+                  {files.length} files
+                </div>
+              </div>
+              
+              <div className="flex-1 flex flex-col space-y-4 min-h-0">
+                <FileUpload onFileUpload={handleFileUpload} />
+                <div className="flex-1 overflow-y-auto">
+                  <FilesList files={files} onFileRemove={handleFileRemove} />
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Right Column - Tasking Files */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="w-6 h-6 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
-                <Upload className="w-3 h-3 text-white" />
-              </div>
-              <h2 className="text-lg font-semibold text-gray-900">Tasking Files</h2>
-              <div className="ml-auto bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
-                {files.length} files
-              </div>
-            </div>
-            
-            <div className="flex-1 flex flex-col space-y-4 min-h-0">
-              <FileUpload onFileUpload={handleFileUpload} />
-              <div className="flex-1 overflow-y-auto">
-                <FilesList files={files} onFileRemove={handleFileRemove} />
-              </div>
-            </div>
-          </div>
+          {/* Briefing Modal */}
+          <BriefingModal
+            isOpen={isBriefingModalOpen}
+            onClose={() => setIsBriefingModalOpen(false)}
+            briefing={generatedBriefing}
+            onDownload={handleDownloadBriefing}
+          />
+
+          {/* Tasking Creation Modal */}
+          <ProjectCreationModal
+            isOpen={isProjectModalOpen}
+            onClose={() => setIsProjectModalOpen(false)}
+            onProjectCreated={handleTaskingCreated}
+          />
         </div>
-
-        {/* Briefing Modal */}
-        <BriefingModal
-          isOpen={isBriefingModalOpen}
-          onClose={() => setIsBriefingModalOpen(false)}
-          briefing={generatedBriefing}
-        />
       </div>
     </div>
   );
