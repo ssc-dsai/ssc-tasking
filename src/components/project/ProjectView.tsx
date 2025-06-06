@@ -2,10 +2,9 @@
 import React, { useState } from 'react';
 import { FileUpload } from './FileUpload';
 import { FilesList } from './FilesList';
-import { TaskingForm } from './TaskingForm';
+import { BriefingChat } from './BriefingChat';
 import { BriefingDisplay } from '../briefings/BriefingDisplay';
-import { Button } from '@/components/ui/button';
-import { Folder, Upload, FileText, Zap } from 'lucide-react';
+import { Folder, Upload, FileText } from 'lucide-react';
 
 interface Project {
   id: string;
@@ -27,33 +26,138 @@ interface ProjectViewProps {
   project: Project;
 }
 
-const mockFiles: ProjectFile[] = [
-  {
-    id: '1',
-    name: 'Q4_Financial_Report.pdf',
-    type: 'application/pdf',
-    size: 2048000,
-    uploadedAt: '2024-01-15'
-  },
-  {
-    id: '2',
-    name: 'Budget_Analysis.xlsx',
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    size: 1024000,
-    uploadedAt: '2024-01-14'
-  },
-  {
-    id: '3',
-    name: 'Meeting_Notes.docx',
-    type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    size: 512000,
-    uploadedAt: '2024-01-13'
+// Mock files data with different sets for different projects
+const getFilesForProject = (projectId: string): ProjectFile[] => {
+  if (projectId === '1') {
+    // Q4 Financial Performance Review - Full details
+    return [
+      {
+        id: '1',
+        name: 'Q4_Financial_Report.pdf',
+        type: 'application/pdf',
+        size: 2048000,
+        uploadedAt: '2024-01-15'
+      },
+      {
+        id: '2',
+        name: 'Budget_Analysis_Q4.xlsx',
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        size: 1024000,
+        uploadedAt: '2024-01-14'
+      },
+      {
+        id: '3',
+        name: 'Executive_Summary_Q4.docx',
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        size: 512000,
+        uploadedAt: '2024-01-13'
+      },
+      {
+        id: '4',
+        name: 'Cash_Flow_Analysis.xlsx',
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        size: 756000,
+        uploadedAt: '2024-01-12'
+      },
+      {
+        id: '5',
+        name: 'Cost_Optimization_Report.pdf',
+        type: 'application/pdf',
+        size: 1200000,
+        uploadedAt: '2024-01-11'
+      },
+      {
+        id: '6',
+        name: 'Revenue_Performance_Q4.csv',
+        type: 'text/csv',
+        size: 245000,
+        uploadedAt: '2024-01-10'
+      },
+      {
+        id: '7',
+        name: 'Board_Meeting_Notes.docx',
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        size: 890000,
+        uploadedAt: '2024-01-09'
+      },
+      {
+        id: '8',
+        name: 'Variance_Analysis_Report.pdf',
+        type: 'application/pdf',
+        size: 1500000,
+        uploadedAt: '2024-01-08'
+      }
+    ];
+  } else if (projectId === '2') {
+    // Global Product Launch Strategy - Files but no briefings
+    return [
+      {
+        id: '9',
+        name: 'Market_Research_Report.pdf',
+        type: 'application/pdf',
+        size: 3200000,
+        uploadedAt: '2024-01-10'
+      },
+      {
+        id: '10',
+        name: 'Competitive_Analysis.xlsx',
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        size: 1800000,
+        uploadedAt: '2024-01-09'
+      },
+      {
+        id: '11',
+        name: 'Customer_Segmentation_Data.csv',
+        type: 'text/csv',
+        size: 650000,
+        uploadedAt: '2024-01-08'
+      },
+      {
+        id: '12',
+        name: 'Pricing_Strategy_Models.xlsx',
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        size: 1100000,
+        uploadedAt: '2024-01-07'
+      },
+      {
+        id: '13',
+        name: 'Go_To_Market_Plan.docx',
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        size: 950000,
+        uploadedAt: '2024-01-06'
+      },
+      {
+        id: '14',
+        name: 'Product_Roadmap.pdf',
+        type: 'application/pdf',
+        size: 2100000,
+        uploadedAt: '2024-01-05'
+      }
+    ];
+  } else {
+    // Random files for other projects
+    return [
+      {
+        id: `${projectId}-1`,
+        name: 'Project_Overview.pdf',
+        type: 'application/pdf',
+        size: 1024000,
+        uploadedAt: '2024-01-01'
+      },
+      {
+        id: `${projectId}-2`,
+        name: 'Analysis_Report.xlsx',
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        size: 512000,
+        uploadedAt: '2023-12-30'
+      }
+    ];
   }
-];
+};
 
 const mockBriefingNote = {
   id: '1',
-  title: 'Q4 Budget Analysis Executive Summary',
+  title: 'Q4 Financial Performance Executive Summary',
   summary: 'The Q4 financial analysis reveals strong performance in core business units with revenue exceeding targets by 12%. However, operational costs have increased by 8% compared to Q3, primarily driven by expanded marketing initiatives and technology infrastructure investments.',
   keyPoints: [
     'Revenue growth of 12% above target, driven by strong performance in enterprise sales',
@@ -83,9 +187,8 @@ const mockBriefingNote = {
 };
 
 export const ProjectView: React.FC<ProjectViewProps> = ({ project }) => {
-  const [files, setFiles] = useState<ProjectFile[]>(mockFiles);
-  const [taskingPrompt, setTaskingPrompt] = useState('');
-  const [generatedBriefing, setGeneratedBriefing] = useState(null);
+  const [files, setFiles] = useState<ProjectFile[]>(getFilesForProject(project.id));
+  const [generatedBriefing, setGeneratedBriefing] = useState(project.id === '1' ? mockBriefingNote : null);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleFileUpload = (uploadedFiles: File[]) => {
@@ -103,9 +206,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project }) => {
     setFiles(files.filter(file => file.id !== fileId));
   };
 
-  const handleGenerateBriefing = async () => {
-    if (!taskingPrompt.trim()) return;
-    
+  const handleGenerateBriefing = async (prompt: string) => {
     setIsGenerating(true);
     // Simulate AI processing
     await new Promise(resolve => setTimeout(resolve, 3000));
@@ -114,7 +215,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project }) => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-7xl mx-auto">
       {/* Project Header */}
       <div className="mb-8">
         <div className="flex items-center space-x-3 mb-3">
@@ -128,53 +229,34 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project }) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Left Column - Project Setup */}
-        <div className="space-y-8">
-          {/* File Upload Section */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center space-x-3 mb-4">
-              <Upload className="w-5 h-5 text-primary" />
-              <h2 className="text-lg font-semibold text-gray-900">Project Files</h2>
-            </div>
-            <FileUpload onFileUpload={handleFileUpload} />
-            <FilesList files={files} onFileRemove={handleFileRemove} />
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[calc(100vh-200px)]">
+        {/* Left Column - Briefing Chat */}
+        <div className="space-y-6">
+          <BriefingChat
+            onGenerate={handleGenerateBriefing}
+            isGenerating={isGenerating}
+            hasFiles={files.length > 0}
+          />
 
-          {/* Tasking Section */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center space-x-3 mb-4">
-              <FileText className="w-5 h-5 text-primary" />
-              <h2 className="text-lg font-semibold text-gray-900">Briefing Requirements</h2>
-            </div>
-            <TaskingForm
-              prompt={taskingPrompt}
-              onPromptChange={setTaskingPrompt}
-              onGenerate={handleGenerateBriefing}
-              isGenerating={isGenerating}
-              hasFiles={files.length > 0}
-            />
-          </div>
+          {/* Generated Briefing Display */}
+          {generatedBriefing && (
+            <BriefingDisplay briefing={generatedBriefing} />
+          )}
         </div>
 
-        {/* Right Column - Generated Briefing */}
-        <div className="space-y-8">
-          {generatedBriefing ? (
-            <BriefingDisplay briefing={generatedBriefing} />
-          ) : (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
-              <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Zap className="w-8 h-8 text-gray-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Ready to Generate</h3>
-              <p className="text-gray-600 mb-4">
-                Upload your files and enter your briefing requirements to generate an AI-powered summary.
-              </p>
-              <div className="text-sm text-gray-500">
-                Files uploaded: {files.length} • Requirements: {taskingPrompt.length > 0 ? 'Complete' : 'Pending'}
-              </div>
+        {/* Right Column - Project Files */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 flex flex-col">
+          <div className="flex items-center space-x-3 mb-4">
+            <Upload className="w-5 h-5 text-primary" />
+            <h2 className="text-lg font-semibold text-gray-900">Project Files</h2>
+          </div>
+          
+          <div className="flex-1 flex flex-col space-y-4">
+            <FileUpload onFileUpload={handleFileUpload} />
+            <div className="flex-1 overflow-y-auto">
+              <FilesList files={files} onFileRemove={handleFileRemove} />
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
