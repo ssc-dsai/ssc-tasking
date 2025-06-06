@@ -5,7 +5,7 @@ import { FileText, Calendar, Folder, ArrowRight } from 'lucide-react';
 interface Briefing {
   id: string;
   title: string;
-  projectName: string;
+  taskingName: string;
   createdAt: string;
   summary: string;
 }
@@ -40,7 +40,7 @@ export const BriefingsList: React.FC<BriefingsListProps> = ({ briefings, onBrief
                 </h3>
                 <div className="flex items-center space-x-2 text-sm text-gray-500">
                   <Folder className="w-4 h-4" />
-                  <span className="truncate">{briefing.projectName}</span>
+                  <span className="truncate">{briefing.taskingName}</span>
                 </div>
               </div>
             </div>
@@ -55,7 +55,7 @@ export const BriefingsList: React.FC<BriefingsListProps> = ({ briefings, onBrief
                 <span>{briefing.createdAt}</span>
               </div>
               <div className="flex items-center space-x-1 text-blue-600 group-hover:text-blue-700 font-medium">
-                <span>Open Project</span>
+                <span>Open Tasking</span>
                 <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
@@ -70,7 +70,7 @@ export const BriefingsList: React.FC<BriefingsListProps> = ({ briefings, onBrief
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">No briefings yet</h3>
           <p className="text-gray-600">
-            Create a project and upload files to generate your first AI-powered briefing note.
+            Create a tasking and upload files to generate your first AI-powered briefing note.
           </p>
         </div>
       )}

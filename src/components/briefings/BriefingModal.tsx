@@ -7,6 +7,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { BriefingDisplay } from './BriefingDisplay';
+import { X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface BriefingNote {
   id: string;
@@ -35,13 +37,28 @@ export const BriefingModal: React.FC<BriefingModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-gray-900">
-            {briefing.title}
-          </DialogTitle>
-        </DialogHeader>
-        <div className="mt-4">
+      <DialogContent className="max-w-4xl max-h-[90vh] p-0 gap-0">
+        {/* Fixed Header */}
+        <div className="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-lg z-10">
+          <DialogHeader>
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-xl font-bold text-gray-900">
+                {briefing.title}
+              </DialogTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="h-8 w-8 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </DialogHeader>
+        </div>
+        
+        {/* Scrollable Content */}
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
           <BriefingDisplay briefing={briefing} />
         </div>
       </DialogContent>
