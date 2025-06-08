@@ -158,7 +158,7 @@ export const Dashboard: React.FC = () => {
   });
 
   return (
-    <div className="h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex">
+    <div className="h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex">
       {/* Mobile menu button */}
       <div className="lg:hidden fixed top-4 left-4 z-50">
         <Button
@@ -248,7 +248,7 @@ export const Dashboard: React.FC = () => {
               <BriefingsList 
                 briefings={mockBriefings} 
                 onBriefingClick={(briefing) => {
-                  const project = mockProjects.find(p => p.name === briefing.projectName);
+                  const project = mockProjects.find(p => p.name === briefing.taskingName);
                   if (project) {
                     setActiveProject(project.id);
                   }
