@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Sidebar } from '../layout/Sidebar';
 import { ProjectView } from '../project/ProjectView';
@@ -28,70 +27,70 @@ const mockProjects: Project[] = [
   {
     id: '1',
     name: 'Q4 Financial Review',
-    description: 'Comprehensive quarterly financial analysis including revenue performance, cost optimization, cash flow evaluation, and strategic financial planning for executive decision-making and stakeholder reporting.',
+    description: 'Comprehensive quarterly financial analysis encompassing revenue performance tracking, detailed cost optimization strategies, comprehensive cash flow evaluation, profitability analysis by business unit, variance reporting against budgets and forecasts, competitive financial benchmarking, strategic financial planning initiatives, risk assessment protocols, and executive-level decision-making support with stakeholder reporting frameworks for board presentations and investor communications.',
     fileCount: 8,
     createdAt: '2024-01-15'
   },
   {
     id: '2',
     name: 'Product Launch Strategy',
-    description: 'End-to-end global product launch planning encompassing market research, competitive analysis, go-to-market strategy, pricing models, distribution channels, and marketing campaign development.',
+    description: 'End-to-end global product launch planning encompassing comprehensive market research and analysis, detailed competitive landscape evaluation, customer segmentation and persona development, go-to-market strategy formulation, dynamic pricing models and revenue optimization, multi-channel distribution strategy, integrated marketing campaign development, sales enablement programs, partnership channel activation, launch timeline coordination, risk mitigation planning, and post-launch performance monitoring frameworks.',
     fileCount: 6,
     createdAt: '2024-01-10'
   },
   {
     id: '3',
     name: 'Digital Transformation',
-    description: 'Enterprise-wide digital transformation initiative covering technology modernization, process automation, cloud migration, data analytics implementation, and organizational change management.',
+    description: 'Enterprise-wide digital transformation initiative covering comprehensive technology modernization roadmaps, business process automation and optimization, cloud migration strategy and implementation, advanced data analytics and business intelligence implementation, artificial intelligence and machine learning integration, cybersecurity framework enhancement, organizational change management programs, digital skills development and training, legacy system modernization, vendor management and technology partnerships, and digital culture transformation initiatives.',
     fileCount: 15,
     createdAt: '2024-01-08'
   },
   {
     id: '4',
     name: 'Customer Experience',
-    description: 'Customer journey optimization project focused on touchpoint analysis, satisfaction metrics, service quality improvement, loyalty program development, and omnichannel experience enhancement.',
+    description: 'Customer journey optimization project focused on comprehensive touchpoint analysis and mapping, customer satisfaction metrics and NPS improvement, service quality enhancement initiatives, loyalty program development and optimization, omnichannel experience integration, customer feedback loop implementation, personalization strategy development, customer support process optimization, retention strategy formulation, customer lifetime value maximization, and brand experience consistency across all interaction points.',
     fileCount: 9,
     createdAt: '2024-01-05'
   },
   {
     id: '5',
     name: 'Supply Chain Assessment',
-    description: 'Global supply chain risk evaluation and optimization including vendor assessment, logistics efficiency, inventory management, sustainability practices, and resilience planning.',
+    description: 'Global supply chain risk evaluation and optimization including comprehensive vendor assessment and due diligence, logistics efficiency analysis and improvement, advanced inventory management optimization, sustainability practices implementation and ESG compliance, supply chain resilience planning and risk mitigation, cost reduction strategies, quality assurance protocols, technology integration for supply chain visibility, supplier relationship management, geopolitical risk assessment, and business continuity planning.',
     fileCount: 11,
     createdAt: '2024-01-03'
   },
   {
     id: '6',
     name: 'Talent Strategy',
-    description: 'Comprehensive workforce planning initiative covering recruitment optimization, skill development programs, retention strategies, diversity and inclusion, and leadership development.',
+    description: 'Comprehensive workforce planning initiative covering strategic recruitment optimization and talent acquisition, advanced skill development programs and career pathing, employee retention strategies and engagement initiatives, diversity, equity, and inclusion program development, leadership development and succession planning, performance management system enhancement, compensation and benefits optimization, organizational culture transformation, remote work policy development, and talent analytics and workforce planning.',
     fileCount: 7,
     createdAt: '2024-01-01'
   },
   {
     id: '7',
     name: 'Market Expansion',
-    description: 'Strategic market entry analysis for Asian markets including feasibility studies, regulatory compliance, partnership opportunities, localization requirements, and investment planning.',
+    description: 'Strategic market entry analysis for Asian and European markets including comprehensive feasibility studies and market sizing, regulatory compliance and legal framework analysis, cultural adaptation strategies, strategic partnership and joint venture opportunities, localization requirements and implementation, investment planning and financial modeling, competitive landscape analysis, distribution channel development, brand positioning strategies, risk assessment and mitigation planning, and go-to-market timeline development.',
     fileCount: 13,
     createdAt: '2023-12-28'
   },
   {
     id: '8',
     name: 'Sustainability Initiative',
-    description: 'Environmental impact assessment and ESG compliance program covering carbon footprint reduction, sustainable operations, regulatory adherence, and stakeholder engagement strategies.',
+    description: 'Environmental impact assessment and comprehensive ESG compliance program covering carbon footprint reduction strategies, sustainable operations implementation, renewable energy transition planning, waste reduction and circular economy initiatives, regulatory adherence and reporting frameworks, stakeholder engagement strategies, sustainability metrics and KPI development, supply chain sustainability assessment, green technology integration, and corporate social responsibility program development.',
     fileCount: 6,
     createdAt: '2023-12-25'
   },
   {
     id: '9',
     name: 'Security Audit',
-    description: 'Comprehensive cybersecurity infrastructure assessment including threat analysis, vulnerability testing, compliance evaluation, incident response planning, and security awareness training.',
+    description: 'Comprehensive cybersecurity infrastructure assessment including advanced threat analysis and vulnerability testing, security compliance evaluation against industry standards, incident response planning and disaster recovery protocols, security awareness training and education programs, data protection and privacy compliance, network security architecture review, endpoint security enhancement, identity and access management optimization, security monitoring and detection systems, and cyber risk assessment and mitigation strategies.',
     fileCount: 10,
     createdAt: '2023-12-22'
   },
   {
     id: '10',
     name: 'Innovation Portfolio',
-    description: 'Research and development investment review covering technology roadmaps, innovation pipeline assessment, intellectual property strategy, and emerging technology evaluation.',
+    description: 'Research and development investment review covering comprehensive technology roadmaps and innovation pipeline assessment, intellectual property strategy and patent portfolio management, emerging technology evaluation and adoption planning, innovation partnership and collaboration strategies, startup ecosystem engagement, venture capital and investment evaluation, innovation labs and incubators development, technology transfer and commercialization strategies, innovation metrics and ROI measurement, and future-oriented strategic planning.',
     fileCount: 14,
     createdAt: '2023-12-20'
   }
