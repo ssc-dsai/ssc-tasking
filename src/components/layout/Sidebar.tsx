@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Plus, CheckSquare, Folder, FileText, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Folder, FileText, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface Project {
@@ -35,17 +35,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="flex items-center justify-between">
           {!isCollapsed && (
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                <CheckSquare className="w-5 h-5 text-white" />
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                <img 
+                  src="/lovable-uploads/25da9ba8-1259-4171-b31b-7f6d2e14d00f.png" 
+                  alt="SSC Tasking Logo" 
+                  className="w-8 h-8"
+                />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Shared Tasking</h1>
+                <h1 className="text-xl font-bold text-gray-900">SSC Tasking</h1>
               </div>
             </div>
           )}
           {isCollapsed && (
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center mx-auto">
-              <CheckSquare className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center mx-auto">
+              <img 
+                src="/lovable-uploads/25da9ba8-1259-4171-b31b-7f6d2e14d00f.png" 
+                alt="SSC Tasking Logo" 
+                className="w-8 h-8"
+              />
             </div>
           )}
           <Button
@@ -63,7 +71,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="flex-1 p-4 overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           {!isCollapsed && (
-            <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Projects</h2>
+            <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Taskings</h2>
           )}
           <Button
             onClick={onNewProject}
