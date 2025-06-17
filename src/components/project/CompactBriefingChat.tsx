@@ -2,20 +2,29 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Zap, Loader2, Send, MessageSquare, Maximize2 } from 'lucide-react';
+import { Loader2, Send, MessageSquare, Maximize2 } from 'lucide-react';
+
+interface ChatMessage {
+  id: string;
+  type: 'user' | 'ai';
+  content: string;
+  timestamp: string;
+}
 
 interface CompactBriefingChatProps {
   onGenerate: (prompt: string) => void;
   isGenerating: boolean;
   hasFiles: boolean;
   onOpenModal?: () => void;
+  chatMessages?: ChatMessage[];
 }
 
 export const CompactBriefingChat: React.FC<CompactBriefingChatProps> = ({
   onGenerate,
   isGenerating,
   hasFiles,
-  onOpenModal
+  onOpenModal,
+  chatMessages = []
 }) => {
   const [prompt, setPrompt] = useState('');
 
@@ -26,13 +35,13 @@ export const CompactBriefingChat: React.FC<CompactBriefingChatProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col h-full">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center space-x-2">
           <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
             <MessageSquare className="w-3 h-3 text-white" />
           </div>
-          <h3 className="text-sm font-semibold text-gray-900">Briefing Assistant</h3>
+          <h3 className="text-sm font-semibold text-gray-900">Chat History</h3>
         </div>
         {onOpenModal && (
           <Button variant="ghost" size="sm" onClick={onOpenModal}>
@@ -41,12 +50,34 @@ export const CompactBriefingChat: React.FC<CompactBriefingChatProps> = ({
         )}
       </div>
 
+      {/* Chat Messages */}
+      {chatMessages.length > 0 && (
+        <div className="flex-1 overflow-y-auto mb-4 max-h-32">
+          <div className="space-y-3">
+            {chatMessages.map((message) => (
+              <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-xs px-3 py-2 rounded-lg text-sm ${
+                  message.type === 'user' 
+                    ? 'bg-blue-500 text-white' 
+                    : 'bg-gray-100 text-gray-900'
+                }`}>
+                  <p>{message.content}</p>
+                  <p className={`text-xs mt-1 ${message.type === 'user' ? 'text-blue-100' : 'text-gray-500'}`}>
+                    {message.timestamp}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-3">
         <Textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           placeholder="What insights do you need? Describe your briefing requirements..."
-          className="min-h-[80px] resize-none text-sm"
+          className="min-h-[80px] resize-none text-sm border-0 shadow-none focus:ring-0"
           disabled={isGenerating}
         />
         

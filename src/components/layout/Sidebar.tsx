@@ -3,6 +3,7 @@ import React from 'react';
 import { Plus, Folder, FileText, ChevronLeft, ChevronRight, User, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { mockTaskings, Tasking } from '@/data/mockData';
+import { useNavigate } from 'react-router-dom';
 
 interface SidebarProps {
   activeTasking: string | null;
@@ -19,8 +20,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isCollapsed,
   onToggle
 }) => {
+  const navigate = useNavigate();
   const personalTaskings = mockTaskings.filter(t => t.category === 'personal');
   const sharedTaskings = mockTaskings.filter(t => t.category === 'shared');
+
+  const handleLogoClick = () => {
+    navigate('/dashboard');
+  };
 
   const renderTaskingSection = (taskings: Tasking[], title: string, icon: React.ReactNode) => (
     <div className="mb-6">
@@ -68,7 +74,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
         <div className="flex items-center justify-between">
           {!isCollapsed && (
-            <div className="flex items-center space-x-3">
+            <button 
+              onClick={handleLogoClick}
+              className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
+            >
               <div className="w-8 h-8 rounded-lg flex items-center justify-center">
                 <img 
                   src="/lovable-uploads/5abdbc0c-d333-4138-b3bc-e3f5c888dc65.png" 
@@ -79,16 +88,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <div>
                 <h1 className="text-xl font-bold text-gray-900">SSC Tasking</h1>
               </div>
-            </div>
+            </button>
           )}
           {isCollapsed && (
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center mx-auto">
+            <button 
+              onClick={handleLogoClick}
+              className="w-8 h-8 rounded-lg flex items-center justify-center mx-auto hover:opacity-80 transition-opacity"
+            >
               <img 
                 src="/lovable-uploads/5abdbc0c-d333-4138-b3bc-e3f5c888dc65.png" 
                 alt="SSC Tasking" 
                 className="w-8 h-8 rounded-lg"
               />
-            </div>
+            </button>
           )}
           <Button
             variant="ghost"

@@ -31,16 +31,11 @@ export const BriefingDisplay: React.FC<BriefingDisplayProps> = ({ briefing, comp
       {/* Header */}
       <div className="border-b border-gray-200 pb-4">
         <div className="flex items-start justify-between">
-          <div className="flex items-start space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
-              <FileText className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h2 className={`font-bold text-gray-900 ${titleClass}`}>{briefing.title}</h2>
-              <div className="flex items-center space-x-2 text-sm text-gray-500 mt-1">
-                <Calendar className="w-4 h-4" />
-                <span>{briefing.createdAt}</span>
-              </div>
+          <div>
+            <h2 className={`font-bold text-gray-900 ${titleClass}`}>{briefing.title}</h2>
+            <div className="flex items-center space-x-2 text-sm text-gray-500 mt-1">
+              <Calendar className="w-4 h-4" />
+              <span>{briefing.createdAt}</span>
             </div>
           </div>
         </div>

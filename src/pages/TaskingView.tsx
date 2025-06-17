@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sidebar } from '../components/layout/Sidebar';
@@ -8,7 +7,7 @@ import { CompactBriefingChat } from '../components/project/CompactBriefingChat';
 import { BriefingDisplay } from '../components/briefings/BriefingDisplay';
 import { BriefingModal } from '../components/briefings/BriefingModal';
 import { ProjectCreationModal } from '../components/project/ProjectCreationModal';
-import { Folder, Upload, FileText, Eye, Menu, X, Plus, Download } from 'lucide-react';
+import { Folder, Upload, FileText, Eye, Menu, X, Plus, Download, FileDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { mockTaskings, Tasking } from '@/data/mockData';
 
@@ -364,6 +363,45 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
     URL.revokeObjectURL(url);
   };
 
+  const handleDownloadMarkdown = () => {
+    if (!generatedBriefing) return;
+    
+    const markdownText = `# ${generatedBriefing.title}
+
+*Generated: ${generatedBriefing.createdAt}*
+
+## Executive Summary
+
+${generatedBriefing.summary}
+
+## Key Insights
+
+${generatedBriefing.keyPoints.map((point, i) => `${i + 1}. ${point}`).join('\n')}
+
+## Key Risks
+
+${generatedBriefing.risks.map((risk, i) => `${i + 1}. ${risk}`).join('\n')}
+
+## Recommendations
+
+${generatedBriefing.recommendations.map((rec, i) => `${i + 1}. ${rec}`).join('\n')}
+
+## Next Steps
+
+${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
+    `;
+    
+    const blob = new Blob([markdownText], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${generatedBriefing.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const handleTaskingSelect = (taskingId: string) => {
     navigate(`/taskings/${taskingId}`);
     setIsMobileSidebarOpen(false);
@@ -440,6 +478,15 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                       <Button
                         variant="outline"
                         size="sm"
+                        onClick={handleDownloadMarkdown}
+                        className="flex items-center space-x-1"
+                      >
+                        <FileDown className="w-4 h-4" />
+                        <span>Markdown</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={handleDownloadBriefing}
                         className="flex items-center space-x-1"
                       >
@@ -473,41 +520,14 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                 </div>
               )}
 
-              {/* Chat Messages and Compact Briefing Chat - Remaining 50% */}
-              <div className="flex-1 space-y-4 flex flex-col min-h-0 overflow-hidden">
-                {/* Chat History - 30% of remaining space */}
-                {chatMessages.length > 0 && (
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 overflow-hidden flex flex-col" style={{ height: '30%' }}>
-                    <h3 className="text-sm font-semibold text-gray-900 mb-3 flex-shrink-0">Chat History</h3>
-                    <div className="flex-1 overflow-y-auto">
-                      <div className="space-y-3">
-                        {chatMessages.map((message) => (
-                          <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`max-w-xs px-3 py-2 rounded-lg text-sm ${
-                              message.type === 'user' 
-                                ? 'bg-blue-500 text-white' 
-                                : 'bg-gray-100 text-gray-900'
-                            }`}>
-                              <p>{message.content}</p>
-                              <p className={`text-xs mt-1 ${message.type === 'user' ? 'text-blue-100' : 'text-gray-500'}`}>
-                                {message.timestamp}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Compact Briefing Chat - Flex to fill remaining space */}
-                <div className="flex-1">
-                  <CompactBriefingChat
-                    onGenerate={handleGenerateBriefing}
-                    isGenerating={isGenerating}
-                    hasFiles={files.length > 0}
-                  />
-                </div>
+              {/* Combined Chat History and Briefing Assistant - Remaining 50% */}
+              <div className="flex-1">
+                <CompactBriefingChat
+                  onGenerate={handleGenerateBriefing}
+                  isGenerating={isGenerating}
+                  hasFiles={files.length > 0}
+                  chatMessages={chatMessages}
+                />
               </div>
             </div>
 
