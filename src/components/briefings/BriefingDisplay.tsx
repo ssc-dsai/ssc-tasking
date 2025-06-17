@@ -19,12 +19,69 @@ interface BriefingNote {
 interface BriefingDisplayProps {
   briefing: BriefingNote;
   compact?: boolean;
+  markdownView?: boolean;
 }
 
-export const BriefingDisplay: React.FC<BriefingDisplayProps> = ({ briefing, compact = false }) => {
+export const BriefingDisplay: React.FC<BriefingDisplayProps> = ({ briefing, compact = false, markdownView = false }) => {
   const sectionClass = compact ? "space-y-3" : "space-y-4";
   const titleClass = compact ? "text-base" : "text-lg";
   const contentClass = compact ? "text-sm" : "text-base";
+
+  if (markdownView) {
+    return (
+      <div className="space-y-6 font-mono text-sm">
+        <div className="border-b border-gray-200 pb-4">
+          <h1 className="text-xl font-bold text-gray-900">{briefing.title}</h1>
+          <p className="text-gray-600 mt-1">Generated: {briefing.createdAt}</p>
+        </div>
+
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">Executive Summary</h2>
+          <p className="text-gray-700 leading-relaxed">{briefing.summary}</p>
+        </div>
+
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">Key Insights</h2>
+          <ul className="space-y-1">
+            {briefing.keyPoints.map((point, index) => (
+              <li key={index} className="text-gray-700">• {point}</li>
+            ))}
+          </ul>
+        </div>
+
+        {!compact && (
+          <>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">Key Risks</h2>
+              <ul className="space-y-1">
+                {briefing.risks.map((risk, index) => (
+                  <li key={index} className="text-gray-700">• {risk}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">Recommendations</h2>
+              <ul className="space-y-1">
+                {briefing.recommendations.map((rec, index) => (
+                  <li key={index} className="text-gray-700">• {rec}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">Next Steps</h2>
+              <ul className="space-y-1">
+                {briefing.nextSteps.map((step, index) => (
+                  <li key={index} className="text-gray-700">• {step}</li>
+                ))}
+              </ul>
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className={sectionClass}>

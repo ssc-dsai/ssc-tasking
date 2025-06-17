@@ -50,64 +50,71 @@ export const CompactBriefingChat: React.FC<CompactBriefingChatProps> = ({
         )}
       </div>
 
-      {/* Chat Messages */}
-      {chatMessages.length > 0 && (
-        <div className="flex-1 overflow-y-auto mb-4 max-h-32">
-          <div className="space-y-3">
-            {chatMessages.map((message) => (
-              <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-xs px-3 py-2 rounded-lg text-sm ${
-                  message.type === 'user' 
-                    ? 'bg-blue-500 text-white' 
-                    : 'bg-gray-100 text-gray-900'
-                }`}>
-                  <p>{message.content}</p>
-                  <p className={`text-xs mt-1 ${message.type === 'user' ? 'text-blue-100' : 'text-gray-500'}`}>
-                    {message.timestamp}
-                  </p>
+      {/* Chat Messages with min-height to push form down */}
+      <div className="flex-1 flex flex-col min-h-[200px]">
+        <div className="flex-1 overflow-y-auto mb-4">
+          {chatMessages.length > 0 ? (
+            <div className="space-y-3">
+              {chatMessages.map((message) => (
+                <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-xs px-3 py-2 rounded-lg text-sm ${
+                    message.type === 'user' 
+                      ? 'bg-blue-500 text-white' 
+                      : 'bg-gray-100 text-gray-900'
+                  }`}>
+                    <p>{message.content}</p>
+                    <p className={`text-xs mt-1 ${message.type === 'user' ? 'text-blue-100' : 'text-gray-500'}`}>
+                      {message.timestamp}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-full text-gray-500 text-sm">
+              No chat history yet
+            </div>
+          )}
         </div>
-      )}
 
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <Textarea
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder="What insights do you need? Describe your briefing requirements..."
-          className="min-h-[80px] resize-none text-sm border-0 shadow-none focus:ring-0"
-          disabled={isGenerating}
-        />
-        
-        <div className="flex items-center justify-between">
-          <div className="text-xs text-gray-500">
-            {!hasFiles && "Upload files to begin"}
-            {hasFiles && !prompt.trim() && "Enter requirements above"}
-            {hasFiles && prompt.trim() && "Ready to generate"}
-          </div>
+        {/* Form floated to bottom */}
+        <form onSubmit={handleSubmit} className="space-y-3 mt-auto">
+          <Textarea
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="What insights do you need? Describe your briefing requirements..."
+            className="min-h-[80px] resize-none text-sm border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            disabled={isGenerating}
+          />
           
-          <Button
-            type="submit"
-            disabled={!hasFiles || !prompt.trim() || isGenerating}
-            size="sm"
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 className="w-3 h-3 animate-spin mr-1" />
-                <span className="text-xs">Generating...</span>
-              </>
-            ) : (
-              <>
-                <Send className="w-3 h-3 mr-1" />
-                <span className="text-xs">Generate</span>
-              </>
-            )}
-          </Button>
-        </div>
-      </form>
+          <div className="flex items-center justify-between">
+            <div className="text-xs text-gray-500">
+              {!hasFiles && "Upload files to begin"}
+              {hasFiles && !prompt.trim() && "Enter requirements above"}
+              {hasFiles && prompt.trim() && "Ready to generate"}
+            </div>
+            
+            <Button
+              type="submit"
+              disabled={!hasFiles || !prompt.trim() || isGenerating}
+              size="sm"
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                  <span className="text-xs">Generating...</span>
+                </>
+              ) : (
+                <>
+                  <Send className="w-3 h-3 mr-1" />
+                  <span className="text-xs">Generate</span>
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

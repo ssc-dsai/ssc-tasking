@@ -3,11 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Sidebar } from '../components/layout/Sidebar';
 import { FileUpload } from '../components/project/FileUpload';
 import { FilesList } from '../components/project/FilesList';
+import { TaskingUsers } from '../components/project/TaskingUsers';
 import { CompactBriefingChat } from '../components/project/CompactBriefingChat';
 import { BriefingDisplay } from '../components/briefings/BriefingDisplay';
 import { BriefingModal } from '../components/briefings/BriefingModal';
 import { ProjectCreationModal } from '../components/project/ProjectCreationModal';
-import { Folder, Upload, FileText, Eye, Menu, X, Plus, Download, FileDown } from 'lucide-react';
+import { Folder, Upload, FileText, Eye, Menu, X, Plus, Download, FileDown, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { mockTaskings, Tasking } from '@/data/mockData';
 
@@ -193,6 +194,7 @@ const TaskingView: React.FC = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isTaskingModalOpen, setIsTaskingModalOpen] = useState(false);
+  const [isMarkdownView, setIsMarkdownView] = useState(false);
   
   // Find the current tasking
   const currentTasking = mockTaskings.find(t => t.id === taskingId) || {
@@ -451,9 +453,7 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
           {/* Tasking Header */}
           <div className="mb-6">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                <Folder className="w-6 h-6 text-white" />
-              </div>
+              <Folder className="w-10 h-10 text-blue-600" />
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">{currentTasking.name}</h1>
                 <p className="text-gray-600">{currentTasking.description}</p>
@@ -464,24 +464,21 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-200px)] overflow-hidden">
             {/* Left Column - Briefing Area */}
             <div className="space-y-4 flex flex-col overflow-hidden">
-              {/* Generated Briefing Display - Fixed 50% height */}
+              {/* Generated Briefing Display - Fixed 60% height */}
               {generatedBriefing ? (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 overflow-hidden flex flex-col" style={{ height: '50%' }}>
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 overflow-hidden flex flex-col" style={{ height: '60%' }}>
                   <div className="flex items-center justify-between mb-4 flex-shrink-0">
                     <div className="flex items-center space-x-2">
-                      <div className="w-6 h-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
-                        <FileText className="w-3 h-3 text-white" />
-                      </div>
                       <h2 className="text-lg font-semibold text-gray-900">Generated Briefing</h2>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Button
-                        variant="outline"
+                        variant={isMarkdownView ? "default" : "outline"}
                         size="sm"
-                        onClick={handleDownloadMarkdown}
+                        onClick={() => setIsMarkdownView(!isMarkdownView)}
                         className="flex items-center space-x-1"
                       >
-                        <FileDown className="w-4 h-4" />
+                        <FileText className="w-4 h-4" />
                         <span>Markdown</span>
                       </Button>
                       <Button
@@ -505,11 +502,11 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                     </div>
                   </div>
                   <div className="flex-1 overflow-y-auto">
-                    <BriefingDisplay briefing={generatedBriefing} />
+                    <BriefingDisplay briefing={generatedBriefing} markdownView={isMarkdownView} />
                   </div>
                 </div>
               ) : (
-                <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center" style={{ height: '50%' }}>
+                <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center" style={{ height: '60%' }}>
                   <div className="text-center p-8">
                     <div className="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-xl flex items-center justify-center mx-auto mb-4">
                       <FileText className="w-8 h-8 text-gray-400" />
@@ -520,7 +517,7 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                 </div>
               )}
 
-              {/* Combined Chat History and Briefing Assistant - Remaining 50% */}
+              {/* Chat History and Assistant - Remaining 40% */}
               <div className="flex-1">
                 <CompactBriefingChat
                   onGenerate={handleGenerateBriefing}
@@ -531,24 +528,41 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
               </div>
             </div>
 
-            {/* Right Column - Tasking Files */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col overflow-hidden">
-              <div className="flex items-center space-x-3 mb-4 flex-shrink-0">
-                <div className="w-6 h-6 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
-                  <Upload className="w-3 h-3 text-white" />
+            {/* Right Column - Split between Files and Users */}
+            <div className="flex flex-col space-y-4 overflow-hidden">
+              {/* Tasking Files - 50% height */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col overflow-hidden" style={{ height: '50%' }}>
+                <div className="flex items-center space-x-3 mb-4 flex-shrink-0">
+                  <div className="w-6 h-6 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
+                    <Upload className="w-3 h-3 text-white" />
+                  </div>
+                  <h2 className="text-lg font-semibold text-gray-900">Tasking Files</h2>
+                  <div className="ml-auto bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
+                    {files.length} files
+                  </div>
                 </div>
-                <h2 className="text-lg font-semibold text-gray-900">Tasking Files</h2>
-                <div className="ml-auto bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
-                  {files.length} files
+                
+                <div className="flex-1 flex flex-col space-y-4 min-h-0 overflow-hidden">
+                  <div className="flex-shrink-0">
+                    <FileUpload onFileUpload={handleFileUpload} />
+                  </div>
+                  <div className="flex-1 overflow-hidden">
+                    <FilesList files={files} onFileRemove={handleFileRemove} />
+                  </div>
                 </div>
               </div>
-              
-              <div className="flex-1 flex flex-col space-y-4 min-h-0 overflow-hidden">
-                <div className="flex-shrink-0">
-                  <FileUpload onFileUpload={handleFileUpload} />
+
+              {/* Tasking Users - 50% height */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col overflow-hidden" style={{ height: '50%' }}>
+                <div className="flex items-center space-x-3 mb-4 flex-shrink-0">
+                  <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                    <Users className="w-3 h-3 text-white" />
+                  </div>
+                  <h2 className="text-lg font-semibold text-gray-900">Tasking Users</h2>
                 </div>
+                
                 <div className="flex-1 overflow-hidden">
-                  <FilesList files={files} onFileRemove={handleFileRemove} />
+                  <TaskingUsers taskingId={taskingId || '1'} />
                 </div>
               </div>
             </div>
