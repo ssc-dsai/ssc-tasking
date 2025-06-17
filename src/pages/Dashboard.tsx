@@ -7,124 +7,12 @@ import { Menu, X, Plus, FolderOpen, FileCheck, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
-
-interface Tasking {
-  id: string;
-  name: string;
-  description: string;
-  fileCount: number;
-  createdAt: string;
-}
-
-interface Briefing {
-  id: string;
-  title: string;
-  taskingName: string;
-  createdAt: string;
-  summary: string;
-}
-
-const mockTaskings: Tasking[] = [
-  {
-    id: '1',
-    name: 'Q4 Financial Review',
-    description: 'Quarterly financial analysis and performance review',
-    fileCount: 8,
-    createdAt: '2024-01-15'
-  },
-  {
-    id: '2',
-    name: 'Product Launch Strategy',
-    description: 'Global product launch planning and execution',
-    fileCount: 6,
-    createdAt: '2024-01-10'
-  },
-  {
-    id: '3',
-    name: 'Digital Transformation',
-    description: 'Enterprise digital transformation roadmap',
-    fileCount: 15,
-    createdAt: '2024-01-08'
-  },
-  {
-    id: '4',
-    name: 'Customer Experience',
-    description: 'Customer journey optimization initiative',
-    fileCount: 9,
-    createdAt: '2024-01-05'
-  },
-  {
-    id: '5',
-    name: 'Supply Chain Assessment',
-    description: 'Global supply chain risk evaluation',
-    fileCount: 11,
-    createdAt: '2024-01-03'
-  },
-  {
-    id: '6',
-    name: 'Talent Strategy',
-    description: 'Workforce planning and retention program',
-    fileCount: 7,
-    createdAt: '2024-01-01'
-  },
-  {
-    id: '7',
-    name: 'Market Expansion',
-    description: 'Asian market entry feasibility study',
-    fileCount: 13,
-    createdAt: '2023-12-28'
-  },
-  {
-    id: '8',
-    name: 'Sustainability Initiative',
-    description: 'Environmental impact and ESG planning',
-    fileCount: 6,
-    createdAt: '2023-12-25'
-  },
-  {
-    id: '9',
-    name: 'Security Audit',
-    description: 'Cybersecurity infrastructure assessment',
-    fileCount: 10,
-    createdAt: '2023-12-22'
-  },
-  {
-    id: '10',
-    name: 'Innovation Portfolio',
-    description: 'R&D and technology investment review',
-    fileCount: 14,
-    createdAt: '2023-12-20'
-  }
-];
-
-const mockBriefings: Briefing[] = [
-  {
-    id: '1',
-    title: 'Q4 Financial Performance Executive Summary',
-    taskingName: 'Q4 Financial Review',
-    createdAt: '2024-01-15',
-    summary: 'Q4 revenue exceeded targets by 12% with strong performance across all business units. Operating margins improved by 3.2% through successful cost optimization initiatives.'
-  },
-  {
-    id: '2',
-    title: 'Digital Transformation Strategic Roadmap',
-    taskingName: 'Digital Transformation',
-    createdAt: '2024-01-12',
-    summary: 'Comprehensive 18-month digital transformation plan with phased implementation approach, focusing on cloud migration, process automation, and data analytics capabilities.'
-  },
-  {
-    id: '3',
-    title: 'Market Expansion Risk Assessment',
-    taskingName: 'Market Expansion',
-    createdAt: '2024-01-09',
-    summary: 'Asian market expansion shows strong potential with estimated ROI of 25% over 3 years. Key risks identified include regulatory compliance and local partnership requirements.'
-  }
-];
+import { mockTaskings, mockBriefings, Tasking } from '@/data/mockData';
 
 const Dashboard: React.FC = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+  const [isTaskingModalOpen, setIsTaskingModalOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleTaskingSelect = (taskingId: string) => {
@@ -133,12 +21,12 @@ const Dashboard: React.FC = () => {
   };
 
   const handleNewTasking = () => {
-    setIsProjectModalOpen(true);
+    setIsTaskingModalOpen(true);
   };
 
-  const handleTaskingCreated = (tasking: Omit<Tasking, 'id' | 'createdAt'>) => {
+  const handleTaskingCreated = (tasking: Omit<Tasking, 'id' | 'createdAt' | 'category'>) => {
     console.log('New tasking created:', tasking);
-    setIsProjectModalOpen(false);
+    setIsTaskingModalOpen(false);
     // TODO: Add tasking to state/database
   };
 
@@ -156,7 +44,7 @@ const Dashboard: React.FC = () => {
   });
 
   return (
-    <div className="h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex">
+    <div className="h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex overflow-hidden">
       {/* Mobile menu button */}
       <div className="lg:hidden fixed top-4 left-4 z-50">
         <Button
@@ -176,22 +64,21 @@ const Dashboard: React.FC = () => {
       {/* Sidebar */}
       <div className={`${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:relative z-50 transition-transform duration-300`}>
         <Sidebar
-          projects={mockTaskings}
-          activeProject={null}
-          onProjectSelect={handleTaskingSelect}
-          onNewProject={handleNewTasking}
+          activeTasking={null}
+          onTaskingSelect={handleTaskingSelect}
+          onNewTasking={handleNewTasking}
           isCollapsed={isSidebarCollapsed && !isMobileSidebarOpen}
           onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         />
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col min-w-0">
-        <div className="flex-1 p-6 lg:p-8">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <div className="flex-1 p-6 lg:p-8 overflow-y-auto">
           {/* Header with date and New button */}
           <div className="flex justify-between items-start mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to Shared Tasking</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to SSC Tasking</h1>
               <p className="text-gray-600">Generate AI-powered briefing notes from your tasking files</p>
             </div>
             <div className="text-right">
@@ -253,8 +140,8 @@ const Dashboard: React.FC = () => {
 
       {/* Tasking Creation Modal */}
       <ProjectCreationModal
-        isOpen={isProjectModalOpen}
-        onClose={() => setIsProjectModalOpen(false)}
+        isOpen={isTaskingModalOpen}
+        onClose={() => setIsTaskingModalOpen(false)}
         onProjectCreated={handleTaskingCreated}
       />
     </div>

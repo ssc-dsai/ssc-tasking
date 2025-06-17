@@ -10,14 +10,7 @@ import { BriefingModal } from '../components/briefings/BriefingModal';
 import { ProjectCreationModal } from '../components/project/ProjectCreationModal';
 import { Folder, Upload, FileText, Eye, Menu, X, Plus, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
-interface Tasking {
-  id: string;
-  name: string;
-  description: string;
-  fileCount: number;
-  createdAt: string;
-}
+import { mockTaskings, Tasking } from '@/data/mockData';
 
 interface TaskingFile {
   id: string;
@@ -34,80 +27,7 @@ interface ChatMessage {
   timestamp: string;
 }
 
-const mockTaskings: Tasking[] = [
-  {
-    id: '1',
-    name: 'Q4 Financial Review',
-    description: 'Comprehensive quarterly financial analysis encompassing revenue performance tracking, detailed cost optimization strategies, comprehensive cash flow evaluation, profitability analysis by business unit, variance reporting against budgets and forecasts, competitive financial benchmarking, strategic financial planning initiatives, risk assessment protocols, and executive-level decision-making support with stakeholder reporting frameworks for board presentations and investor communications.',
-    fileCount: 8,
-    createdAt: '2024-01-15'
-  },
-  {
-    id: '2',
-    name: 'Product Launch Strategy',
-    description: 'End-to-end global product launch planning encompassing comprehensive market research and analysis, detailed competitive landscape evaluation, customer segmentation and persona development, go-to-market strategy formulation, dynamic pricing models and revenue optimization, multi-channel distribution strategy, integrated marketing campaign development, sales enablement programs, partnership channel activation, launch timeline coordination, risk mitigation planning, and post-launch performance monitoring frameworks.',
-    fileCount: 6,
-    createdAt: '2024-01-10'
-  },
-  {
-    id: '3',
-    name: 'Digital Transformation',
-    description: 'Enterprise-wide digital transformation initiative covering comprehensive technology modernization roadmaps, business process automation and optimization, cloud migration strategy and implementation, advanced data analytics and business intelligence implementation, artificial intelligence and machine learning integration, cybersecurity framework enhancement, organizational change management programs, digital skills development and training, legacy system modernization, vendor management and technology partnerships, and digital culture transformation initiatives.',
-    fileCount: 15,
-    createdAt: '2024-01-08'
-  },
-  {
-    id: '4',
-    name: 'Customer Experience',
-    description: 'Customer journey optimization project focused on comprehensive touchpoint analysis and mapping, customer satisfaction metrics and NPS improvement, service quality enhancement initiatives, loyalty program development and optimization, omnichannel experience integration, customer feedback loop implementation, personalization strategy development, customer support process optimization, retention strategy formulation, customer lifetime value maximization, and brand experience consistency across all interaction points.',
-    fileCount: 9,
-    createdAt: '2024-01-05'
-  },
-  {
-    id: '5',
-    name: 'Supply Chain Assessment',
-    description: 'Global supply chain risk evaluation and optimization including comprehensive vendor assessment and due diligence, logistics efficiency analysis and improvement, advanced inventory management optimization, sustainability practices implementation and ESG compliance, supply chain resilience planning and risk mitigation, cost reduction strategies, quality assurance protocols, technology integration for supply chain visibility, supplier relationship management, geopolitical risk assessment, and business continuity planning.',
-    fileCount: 11,
-    createdAt: '2024-01-03'
-  },
-  {
-    id: '6',
-    name: 'Talent Strategy',
-    description: 'Comprehensive workforce planning initiative covering strategic recruitment optimization and talent acquisition, advanced skill development programs and career pathing, employee retention strategies and engagement initiatives, diversity, equity, and inclusion program development, leadership development and succession planning, performance management system enhancement, compensation and benefits optimization, organizational culture transformation, remote work policy development, and talent analytics and workforce planning.',
-    fileCount: 7,
-    createdAt: '2024-01-01'
-  },
-  {
-    id: '7',
-    name: 'Market Expansion',
-    description: 'Strategic market entry analysis for Asian and European markets including comprehensive feasibility studies and market sizing, regulatory compliance and legal framework analysis, cultural adaptation strategies, strategic partnership and joint venture opportunities, localization requirements and implementation, investment planning and financial modeling, competitive landscape analysis, distribution channel development, brand positioning strategies, risk assessment and mitigation planning, and go-to-market timeline development.',
-    fileCount: 13,
-    createdAt: '2023-12-28'
-  },
-  {
-    id: '8',
-    name: 'Sustainability Initiative',
-    description: 'Environmental impact assessment and comprehensive ESG compliance program covering carbon footprint reduction strategies, sustainable operations implementation, renewable energy transition planning, waste reduction and circular economy initiatives, regulatory adherence and reporting frameworks, stakeholder engagement strategies, sustainability metrics and KPI development, supply chain sustainability assessment, green technology integration, and corporate social responsibility program development.',
-    fileCount: 6,
-    createdAt: '2023-12-25'
-  },
-  {
-    id: '9',
-    name: 'Security Audit',
-    description: 'Comprehensive cybersecurity infrastructure assessment including advanced threat analysis and vulnerability testing, security compliance evaluation against industry standards, incident response planning and disaster recovery protocols, security awareness training and education programs, data protection and privacy compliance, network security architecture review, endpoint security enhancement, identity and access management optimization, security monitoring and detection systems, and cyber risk assessment and mitigation strategies.',
-    fileCount: 10,
-    createdAt: '2023-12-22'
-  },
-  {
-    id: '10',
-    name: 'Innovation Portfolio',
-    description: 'Research and development investment review covering comprehensive technology roadmaps and innovation pipeline assessment, intellectual property strategy and patent portfolio management, emerging technology evaluation and adoption planning, innovation partnership and collaboration strategies, startup ecosystem engagement, venture capital and investment evaluation, innovation labs and incubators development, technology transfer and commercialization strategies, innovation metrics and ROI measurement, and future-oriented strategic planning.',
-    fileCount: 14,
-    createdAt: '2023-12-20'
-  }
-];
-
-// Mock files data with different sets for different projects
+// Mock files data with different sets for different taskings
 const getFilesForTasking = (taskingId: string): TaskingFile[] => {
   if (taskingId === '1') {
     // Q4 Financial Performance Review - Full details
@@ -273,7 +193,7 @@ const TaskingView: React.FC = () => {
   
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+  const [isTaskingModalOpen, setIsTaskingModalOpen] = useState(false);
   
   // Find the current tasking
   const currentTasking = mockTaskings.find(t => t.id === taskingId) || {
@@ -281,7 +201,8 @@ const TaskingView: React.FC = () => {
     name: 'Q4 Financial Review',
     description: 'Comprehensive quarterly financial analysis including revenue performance, cost optimization, cash flow evaluation, and strategic financial planning for executive decision-making and stakeholder reporting.',
     fileCount: 8,
-    createdAt: '2024-01-15'
+    createdAt: '2024-01-15',
+    category: 'personal' as const
   };
 
   const [files, setFiles] = useState<TaskingFile[]>(getFilesForTasking(taskingId || '1'));
@@ -449,16 +370,16 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
   };
 
   const handleNewTasking = () => {
-    setIsProjectModalOpen(true);
+    setIsTaskingModalOpen(true);
   };
 
-  const handleTaskingCreated = (tasking: Omit<Tasking, 'id' | 'createdAt'>) => {
+  const handleTaskingCreated = (tasking: Omit<Tasking, 'id' | 'createdAt' | 'category'>) => {
     console.log('New tasking created:', tasking);
-    setIsProjectModalOpen(false);
+    setIsTaskingModalOpen(false);
   };
 
   return (
-    <div className="h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex">
+    <div className="h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex overflow-hidden">
       {/* Mobile menu button */}
       <div className="lg:hidden fixed top-4 left-4 z-50">
         <Button
@@ -478,18 +399,17 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
       {/* Sidebar */}
       <div className={`${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:relative z-50 transition-transform duration-300`}>
         <Sidebar
-          projects={mockTaskings}
-          activeProject={taskingId || null}
-          onProjectSelect={handleTaskingSelect}
-          onNewProject={handleNewTasking}
+          activeTasking={taskingId || null}
+          onTaskingSelect={handleTaskingSelect}
+          onNewTasking={handleNewTasking}
           isCollapsed={isSidebarCollapsed && !isMobileSidebarOpen}
           onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         />
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col min-w-0">
-        <div className="flex-1 p-6 lg:p-8">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <div className="flex-1 p-6 lg:p-8 overflow-hidden">
           {/* Tasking Header */}
           <div className="mb-6">
             <div className="flex items-center space-x-3">
@@ -503,13 +423,13 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-220px)]">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-200px)] overflow-hidden">
             {/* Left Column - Briefing Area */}
-            <div className="space-y-4 flex flex-col">
-              {/* Generated Briefing Display - Limited to 40% height */}
+            <div className="space-y-4 flex flex-col overflow-hidden">
+              {/* Generated Briefing Display - Fixed 50% height */}
               {generatedBriefing ? (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 overflow-y-auto" style={{ maxHeight: '40%' }}>
-                  <div className="flex items-center justify-between mb-4">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 overflow-hidden flex flex-col" style={{ height: '50%' }}>
+                  <div className="flex items-center justify-between mb-4 flex-shrink-0">
                     <div className="flex items-center space-x-2">
                       <div className="w-6 h-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
                         <FileText className="w-3 h-3 text-white" />
@@ -537,10 +457,12 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                       </Button>
                     </div>
                   </div>
-                  <BriefingDisplay briefing={generatedBriefing} />
+                  <div className="flex-1 overflow-y-auto">
+                    <BriefingDisplay briefing={generatedBriefing} />
+                  </div>
                 </div>
               ) : (
-                <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center" style={{ maxHeight: '40%' }}>
+                <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center" style={{ height: '50%' }}>
                   <div className="text-center p-8">
                     <div className="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-xl flex items-center justify-center mx-auto mb-4">
                       <FileText className="w-8 h-8 text-gray-400" />
@@ -551,43 +473,47 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                 </div>
               )}
 
-              {/* Chat Messages and Compact Briefing Chat */}
-              <div className="flex-1 space-y-4 flex flex-col min-h-0">
-                {/* Chat History */}
+              {/* Chat Messages and Compact Briefing Chat - Remaining 50% */}
+              <div className="flex-1 space-y-4 flex flex-col min-h-0 overflow-hidden">
+                {/* Chat History - 30% of remaining space */}
                 {chatMessages.length > 0 && (
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex-1 overflow-y-auto">
-                    <h3 className="text-sm font-semibold text-gray-900 mb-3">Chat History</h3>
-                    <div className="space-y-3">
-                      {chatMessages.map((message) => (
-                        <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                          <div className={`max-w-xs px-3 py-2 rounded-lg text-sm ${
-                            message.type === 'user' 
-                              ? 'bg-blue-500 text-white' 
-                              : 'bg-gray-100 text-gray-900'
-                          }`}>
-                            <p>{message.content}</p>
-                            <p className={`text-xs mt-1 ${message.type === 'user' ? 'text-blue-100' : 'text-gray-500'}`}>
-                              {message.timestamp}
-                            </p>
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 overflow-hidden flex flex-col" style={{ height: '30%' }}>
+                    <h3 className="text-sm font-semibold text-gray-900 mb-3 flex-shrink-0">Chat History</h3>
+                    <div className="flex-1 overflow-y-auto">
+                      <div className="space-y-3">
+                        {chatMessages.map((message) => (
+                          <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                            <div className={`max-w-xs px-3 py-2 rounded-lg text-sm ${
+                              message.type === 'user' 
+                                ? 'bg-blue-500 text-white' 
+                                : 'bg-gray-100 text-gray-900'
+                            }`}>
+                              <p>{message.content}</p>
+                              <p className={`text-xs mt-1 ${message.type === 'user' ? 'text-blue-100' : 'text-gray-500'}`}>
+                                {message.timestamp}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   </div>
                 )}
 
-                {/* Compact Briefing Chat */}
-                <CompactBriefingChat
-                  onGenerate={handleGenerateBriefing}
-                  isGenerating={isGenerating}
-                  hasFiles={files.length > 0}
-                />
+                {/* Compact Briefing Chat - Flex to fill remaining space */}
+                <div className="flex-1">
+                  <CompactBriefingChat
+                    onGenerate={handleGenerateBriefing}
+                    isGenerating={isGenerating}
+                    hasFiles={files.length > 0}
+                  />
+                </div>
               </div>
             </div>
 
             {/* Right Column - Tasking Files */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col">
-              <div className="flex items-center space-x-3 mb-4">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col overflow-hidden">
+              <div className="flex items-center space-x-3 mb-4 flex-shrink-0">
                 <div className="w-6 h-6 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
                   <Upload className="w-3 h-3 text-white" />
                 </div>
@@ -597,9 +523,11 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                 </div>
               </div>
               
-              <div className="flex-1 flex flex-col space-y-4 min-h-0">
-                <FileUpload onFileUpload={handleFileUpload} />
-                <div className="flex-1 overflow-y-auto">
+              <div className="flex-1 flex flex-col space-y-4 min-h-0 overflow-hidden">
+                <div className="flex-shrink-0">
+                  <FileUpload onFileUpload={handleFileUpload} />
+                </div>
+                <div className="flex-1 overflow-hidden">
                   <FilesList files={files} onFileRemove={handleFileRemove} />
                 </div>
               </div>
@@ -616,8 +544,8 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
 
           {/* Tasking Creation Modal */}
           <ProjectCreationModal
-            isOpen={isProjectModalOpen}
-            onClose={() => setIsProjectModalOpen(false)}
+            isOpen={isTaskingModalOpen}
+            onClose={() => setIsTaskingModalOpen(false)}
             onProjectCreated={handleTaskingCreated}
           />
         </div>
