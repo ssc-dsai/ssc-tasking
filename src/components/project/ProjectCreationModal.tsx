@@ -5,6 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Upload, X, FileText } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/components/ui/use-toast';
+import { createTasking, uploadFileToTasking } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ProjectCreationModalProps {
   isOpen: boolean;
@@ -21,21 +25,61 @@ export const ProjectCreationModal: React.FC<ProjectCreationModalProps> = ({
   const [description, setDescription] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { user } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
 
-    onProjectCreated({
-      name: name.trim(),
-      description: description.trim(),
-      fileCount: files.length
-    });
+    setIsSubmitting(true);
+    try {
+      if (!user) throw new Error('Not authenticated');
+      // Create the tasking
+      const tasking = await createTasking(
+        user.id,
+        name.trim(),
+        description.trim(),
+        'personal'
+      );
 
-    // Reset form
-    setName('');
-    setDescription('');
-    setFiles([]);
+      // Upload files if any
+      if (files.length > 0) {
+        await Promise.all(files.map(file => uploadFileToTasking(tasking.id, file)));
+      }
+
+      // Notify parent component
+      onProjectCreated({
+        name: tasking.name,
+        description: tasking.description || '',
+        fileCount: files.length
+      });
+
+      // Show success toast
+      toast({
+        title: "Tasking created",
+        description: "Your tasking has been created successfully.",
+      });
+
+      // Navigate to the new tasking
+      navigate(`/taskings/${tasking.id}`);
+
+      // Reset form
+      setName('');
+      setDescription('');
+      setFiles([]);
+    } catch (error) {
+      console.error('Error creating tasking:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create tasking. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleFileUpload = (uploadedFiles: FileList | null) => {
@@ -201,15 +245,16 @@ export const ProjectCreationModal: React.FC<ProjectCreationModalProps> = ({
               variant="outline" 
               onClick={onClose}
               className="border-slate-200 text-slate-700 hover:bg-slate-50"
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button 
               type="submit" 
-              disabled={!name.trim()}
+              disabled={!name.trim() || isSubmitting}
               className="bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm"
             >
-              Create Tasking
+              {isSubmitting ? 'Creating...' : 'Create Tasking'}
             </Button>
           </div>
         </form>

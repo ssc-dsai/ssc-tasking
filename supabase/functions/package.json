@@ -1,0 +1,12 @@
+{
+  "name": "supabase-functions",
+  "version": "1.0.0",
+  "description": "Supabase Edge Functions for Briefing AI",
+  "scripts": {
+    "deploy": "supabase functions deploy",
+    "deploy:get-taskings": "supabase functions deploy get-taskings"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  }
+} 

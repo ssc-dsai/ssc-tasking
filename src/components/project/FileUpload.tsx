@@ -3,12 +3,22 @@ import { Upload, File, X } from 'lucide-react';
 
 interface FileUploadProps {
   onFileUpload: (files: File[]) => void;
+  isUploading?: boolean;
+  uploadProgress?: number | null;
 }
 
-export const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload }) => {
+export const FileUpload: React.FC<FileUploadProps> = ({ 
+  onFileUpload, 
+  isUploading: externalIsUploading = false,
+  uploadProgress: externalUploadProgress = null
+}) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  
+  // Use external upload progress if available, otherwise use internal
+  const currentUploadProgress = externalUploadProgress !== null ? externalUploadProgress : uploadProgress;
+  const currentIsUploading = externalIsUploading || uploadProgress !== null;
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -36,20 +46,25 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload }) => {
   }, []);
 
   const handleAreaClick = () => {
-    if (uploadProgress === null && inputRef.current) {
+    if (!currentIsUploading && inputRef.current) {
       inputRef.current.click();
     }
   };
 
   const processFiles = async (files: File[]) => {
-    // Simulate upload progress
-    setUploadProgress(0);
-    for (let i = 0; i <= 100; i += 10) {
-      await new Promise(resolve => setTimeout(resolve, 50));
-      setUploadProgress(i);
+    if (externalIsUploading) {
+      // Real upload - just call the handler, progress managed externally
+      onFileUpload(files);
+    } else {
+      // Mock upload - simulate progress
+      setUploadProgress(0);
+      for (let i = 0; i <= 100; i += 10) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+        setUploadProgress(i);
+      }
+      setUploadProgress(null);
+      onFileUpload(files);
     }
-    setUploadProgress(null);
-    onFileUpload(files);
   };
 
   return (
@@ -75,20 +90,22 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload }) => {
           ref={inputRef}
         />
         
-        {uploadProgress !== null ? (
+        {currentUploadProgress !== null ? (
           <div className="space-y-3">
             <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center mx-auto">
               <Upload className="w-4 h-4 text-primary animate-pulse" />
             </div>
             <div className="space-y-2">
-              <p className="text-sm font-medium text-gray-700">Uploading files...</p>
+              <p className="text-sm font-medium text-gray-700">
+                {externalIsUploading ? 'Uploading to server...' : 'Uploading files...'}
+              </p>
               <div className="w-48 mx-auto bg-gray-200 rounded-full h-2">
                 <div
                   className="bg-primary h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${uploadProgress}%` }}
+                  style={{ width: `${currentUploadProgress}%` }}
                 />
               </div>
-              <p className="text-xs text-gray-500">{uploadProgress}% complete</p>
+              <p className="text-xs text-gray-500">{Math.round(currentUploadProgress)}% complete</p>
             </div>
           </div>
         ) : (

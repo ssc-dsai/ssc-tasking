@@ -21,6 +21,19 @@ interface SidebarProps {
   onToggle: () => void;
 }
 
+// Utility to format time ago
+function timeAgo(dateString: string): string {
+  const now = new Date();
+  const date = new Date(dateString);
+  const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return `${Math.floor(diff / 60)} min${Math.floor(diff / 60) === 1 ? '' : 's'} ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} hour${Math.floor(diff / 3600) === 1 ? '' : 's'} ago`;
+  if (diff < 7 * 86400) return `${Math.floor(diff / 86400)} day${Math.floor(diff / 86400) === 1 ? '' : 's'} ago`;
+  // If more than 7 days ago, show as 'Month Day'
+  return date.toLocaleString('en-US', { month: 'short', day: 'numeric' });
+}
+
 export const Sidebar: React.FC<SidebarProps> = ({
   activeTasking,
   onTaskingSelect,
@@ -30,8 +43,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const personalTaskings = mockTaskings.filter(t => t.category === 'personal');
-  const sharedTaskings = mockTaskings.filter(t => t.category === 'shared');
+  const personalTaskings = mockTaskings
+    .filter(t => t.category === 'personal')
+    .sort((a, b) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime());
+  const sharedTaskings = mockTaskings
+    .filter(t => t.category === 'shared')
+    .sort((a, b) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime());
 
   const handleLogoClick = () => {
     navigate('/dashboard');
@@ -93,7 +110,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {!isCollapsed && (
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm truncate">{tasking.name}</p>
-                  <p className="text-xs text-slate-400 truncate">{tasking.fileCount} files</p>
+                  <div className="flex items-center justify-between mt-0.5 w-full">
+                    <span className={`text-xs font-medium rounded-full px-2 py-0.5 ${
+                      tasking.status === 'Complete'
+                        ? 'bg-slate-100 text-green-600'
+                        : 'bg-slate-100 text-yellow-600'
+                    }`}>
+                      {tasking.status}
+                    </span>
+                    <span className="text-[11px] text-slate-400 ml-2 whitespace-nowrap">{timeAgo(tasking.lastUpdated)}</span>
+                  </div>
                 </div>
               )}
             </div>

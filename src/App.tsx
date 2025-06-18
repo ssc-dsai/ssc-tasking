@@ -13,50 +13,24 @@ import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import { supabase } from './lib/supabase';
 
-const App = () => {
-  const { user, loading, setUser, setLoading, setSession } = useAuth();
-  const [timeoutReached, setTimeoutReached] = useState(false);
-
+function SupabaseTest() {
   useEffect(() => {
-    let eventFired = false;
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        eventFired = true;
-        console.log('[AUTH EVENT]', event, session);
-        setUser(session?.user ?? null);
-
-        if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
-          setLoading(false);
-        }
-
-        // ...profile creation logic...
-      }
-    );
-
-    // Fallback: if no event after 1s, call getSession manually
-    const fallbackTimeout = setTimeout(async () => {
-      if (!eventFired) {
-        console.warn('No auth event received, calling getSession() manually');
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log('[FALLBACK getSession()]', session);
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-
-        // If still no session, force reload or redirect
-        if (!session) {
-          window.location.reload();
-          // or: window.location.href = '/login';
-        }
-      }
-    }, 1000);
-
-    return () => {
-      subscription.unsubscribe();
-      clearTimeout(fallbackTimeout);
-    };
+    console.log('Calling supabase.auth.getUser()...');
+    supabase.auth.getUser().then((result) => {
+      console.log('Supabase getUser result:', result);
+    }).catch((err) => {
+      console.error('Supabase getUser error:', err);
+    }).finally(() => {
+      console.log('Finished supabase.auth.getUser() call');
+    });
+    console.log('After calling supabase.auth.getUser() (promise returned)');
   }, []);
+  return null;
+}
+
+const App = () => {
+  const { user, loading } = useAuth();
+  const [timeoutReached, setTimeoutReached] = useState(false);
 
   // Add timeout protection
   useEffect(() => {
@@ -94,57 +68,68 @@ const App = () => {
   }
 
   return (
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <Routes>
-        {/* Public routes */}
-        <Route path="/login" element={<Login />} />
-        
-        {/* Protected routes */}
-        <Route 
-          path="/" 
-          element={
-            user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
-          } 
-        />
-        <Route 
-          path="/dashboard" 
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/taskings/:taskingId" 
-          element={
-            <ProtectedRoute>
-              <TaskingView />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/profile" 
-          element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/settings" 
-          element={
-            <ProtectedRoute>
-              <Settings />
-            </ProtectedRoute>
-          } 
-        />
-        
-        {/* 404 route */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </TooltipProvider>
+    <>
+      <SupabaseTest />
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <Routes>
+          {/* Public routes */}
+          <Route path="/login" element={<Login />} />
+          
+          {/* Protected routes */}
+          <Route 
+            path="/" 
+            element={
+              user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
+            } 
+          />
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/taskings/new" 
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/taskings/:taskingId" 
+            element={
+              <ProtectedRoute>
+                <TaskingView />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/profile" 
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/settings" 
+            element={
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* 404 route */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </TooltipProvider>
+    </>
   );
 };
 

@@ -9,10 +9,12 @@ type TaskingUpdate = Database['public']['Tables']['taskings']['Update']
 
 export const useTaskings = () => {
   const { user } = useAuth()
+  console.log('useTaskings hook - User:', user)
 
   return useQuery({
     queryKey: ['taskings', user?.id],
     queryFn: async () => {
+      console.log('Fetching taskings for user:', user?.id)
       if (!user) throw new Error('User not authenticated')
       
       const { data, error } = await supabase
@@ -29,6 +31,7 @@ export const useTaskings = () => {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
 
+      console.log('Supabase response:', { data, error })
       if (error) throw error
       return data
     },

@@ -13,6 +13,9 @@ import { Folder, Upload, FileText, Eye, Menu, X, Plus, Download, FileDown, Users
 import { Button } from '@/components/ui/button';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { mockTaskings, Tasking } from '@/data/mockData';
+import { useTaskingDetails } from '@/hooks/useTaskingDetails';
+import { useFileUpload } from '@/hooks/useFileUpload';
+import { useToast } from '@/hooks/use-toast';
 
 interface TaskingFile {
   id: string;
@@ -198,17 +201,41 @@ const TaskingView: React.FC = () => {
   const [isTaskingModalOpen, setIsTaskingModalOpen] = useState(false);
   const [isMarkdownView, setIsMarkdownView] = useState(false);
   
-  // Find the current tasking
-  const currentTasking = mockTaskings.find(t => t.id === taskingId) || {
+  // Any taskingId other than '1' (our demo) will be treated as real
+  const isRealTasking = taskingId !== '1';
+  // Fetch real tasking details only when real
+  const { data: realTaskingData, isLoading: isLoadingReal, error: realError } = useTaskingDetails(taskingId || '', { enabled: isRealTasking });
+  
+  // Find the current tasking (prefer real data over mock)
+  const currentTasking = isRealTasking ? realTaskingData && realTaskingData.data ? {
+    id: realTaskingData.data.id,
+    name: realTaskingData.data.name,
+    description: realTaskingData.data.description || 'Tasking details from database',
+    fileCount: realTaskingData.summary.file_count,
+    createdAt: new Date(realTaskingData.data.created_at).toISOString().split('T')[0],
+    category: 'personal' as const
+  } : null : (mockTaskings.find(t => t.id === taskingId) || {
     id: taskingId || '1',
     name: 'Q4 Financial Review',
     description: 'Comprehensive quarterly financial analysis including revenue performance, cost optimization, cash flow evaluation, and strategic financial planning for executive decision-making and stakeholder reporting.',
     fileCount: 8,
     createdAt: '2024-01-15',
     category: 'personal' as const
-  };
+  });
 
-  const [files, setFiles] = useState<TaskingFile[]>(getFilesForTasking(taskingId || '1'));
+  // Derive files: real from API, otherwise mock (demo id '1')
+  const files: TaskingFile[] = React.useMemo(() => {
+    if (isRealTasking && realTaskingData && realTaskingData.data) {
+      return realTaskingData.data.files.map(file => ({
+        id: file.id,
+        name: file.name,
+        type: file.mime_type || 'application/octet-stream',
+        size: file.file_size,
+        uploadedAt: new Date(file.created_at).toISOString().split('T')[0]
+      }));
+    }
+    return getFilesForTasking(taskingId || '1');
+  }, [isRealTasking, realTaskingData, taskingId]);
 
   const [generatedBriefing, setGeneratedBriefing] = useState(taskingId === '1' ? {
     id: '1',
@@ -260,20 +287,40 @@ const TaskingView: React.FC = () => {
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [isBriefingModalOpen, setIsBriefingModalOpen] = useState(false);
+  const { toast } = useToast();
+
+  // Real file upload functionality for real taskings
+  const { uploadFile, isUploading, uploadProgress, error: uploadError } = useFileUpload(taskingId || '', {
+    onSuccess: (file) => {
+      toast({
+        title: "File uploaded successfully",
+        description: `${file.name} has been uploaded to the tasking.`,
+      });
+      
+      // After successful upload, react-query invalidation will refresh file list automatically
+    },
+    onError: (error) => {
+      toast({
+        title: "Upload failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
 
   const handleFileUpload = (uploadedFiles: File[]) => {
-    const newFiles: TaskingFile[] = uploadedFiles.map((file, index) => ({
-      id: `new-${Date.now()}-${index}`,
-      name: file.name,
-      type: file.type,
-      size: file.size,
-      uploadedAt: new Date().toISOString().split('T')[0]
-    }));
-    setFiles([...files, ...newFiles]);
+    if (isRealTasking && uploadedFiles.length > 0) {
+      // Real upload for real taskings
+      console.log('🔄 [TaskingView] Starting real upload for:', uploadedFiles[0].name);
+      uploadFile(uploadedFiles[0]); // Upload first file
+    } else {
+      // Demo mode: simply log, no mock state mutation
+      console.log('🔄 [TaskingView] Mock upload for:', uploadedFiles.map(f => f.name));
+    }
   };
 
   const handleFileRemove = (fileId: string) => {
-    setFiles(files.filter(file => file.id !== fileId));
+    console.log('Remove requested for file', fileId, '— implement as needed');
   };
 
   const handleGenerateBriefing = async (prompt: string) => {
@@ -420,6 +467,24 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
     setIsTaskingModalOpen(false);
   };
 
+  // Loading / error handling for real taskings
+  if (isRealTasking) {
+    if (isLoadingReal || !realTaskingData) {
+      return (
+        <div className="h-screen flex items-center justify-center bg-slate-50">
+          <span className="text-sm text-slate-600">Loading tasking...</span>
+        </div>
+      );
+    }
+    if (realError) {
+      return (
+        <div className="h-screen flex items-center justify-center bg-slate-50">
+          <span className="text-sm text-red-600">Failed to load tasking: {String(realError)}</span>
+        </div>
+      );
+    }
+  }
+
   return (
     <div className="h-screen bg-slate-50 flex overflow-hidden">
       {/* Mobile menu button */}
@@ -458,7 +523,7 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
         
         <div className="flex-1 p-6 lg:p-8 overflow-hidden">
           {/* Breadcrumbs */}
-          <div className="mb-6">
+          <div className="mb-4">
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem>
@@ -566,7 +631,11 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
               
               <div className="flex-1 flex flex-col space-y-4 min-h-0 overflow-hidden">
                 <div className="flex-shrink-0">
-                  <FileUpload onFileUpload={handleFileUpload} />
+                  <FileUpload 
+                    onFileUpload={handleFileUpload}
+                    isUploading={isRealTasking && isUploading}
+                    uploadProgress={isRealTasking ? uploadProgress : null}
+                  />
                 </div>
                 <div className="flex-1 overflow-hidden">
                   <FilesList files={files} onFileRemove={handleFileRemove} />
@@ -580,11 +649,14 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                 <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
                   <Users className="w-3 h-3 text-white" />
                 </div>
-                <h2 className="text-lg font-semibold text-gray-900">Tasking Users</h2>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Tasking Users {isRealTasking && <span className="text-sm font-normal text-gray-500">(Real Data)</span>}
+                  {!isRealTasking && <span className="text-sm font-normal text-gray-500">(Mock Data)</span>}
+                </h2>
               </div>
               
               <div className="flex-1 overflow-hidden">
-                <TaskingUsers taskingId={taskingId || '1'} />
+                <TaskingUsers taskingId={taskingId || '1'} isRealTasking={isRealTasking} />
               </div>
             </div>
           </div>

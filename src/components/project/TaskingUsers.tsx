@@ -13,6 +13,7 @@ interface TaskingUser {
 
 interface TaskingUsersProps {
   taskingId: string;
+  isRealTasking?: boolean;
 }
 
 const mockUsers: TaskingUser[] = [
@@ -36,8 +37,9 @@ const mockUsers: TaskingUser[] = [
   }
 ];
 
-export const TaskingUsers: React.FC<TaskingUsersProps> = ({ taskingId }) => {
-  const [users, setUsers] = useState<TaskingUser[]>(mockUsers);
+export const TaskingUsers: React.FC<TaskingUsersProps> = ({ taskingId, isRealTasking = false }) => {
+  // For real taskings, start with empty users list; for mock, use mock data
+  const [users, setUsers] = useState<TaskingUser[]>(isRealTasking ? [] : mockUsers);
   const [newUserEmail, setNewUserEmail] = useState('');
   const [isAdding, setIsAdding] = useState(false);
 
@@ -79,6 +81,7 @@ export const TaskingUsers: React.FC<TaskingUsersProps> = ({ taskingId }) => {
           variant="outline"
           size="sm"
           onClick={() => setIsAdding(true)}
+          disabled={isRealTasking}
           className="flex items-center space-x-1"
         >
           <Plus className="w-4 h-4" />
@@ -152,7 +155,12 @@ export const TaskingUsers: React.FC<TaskingUsersProps> = ({ taskingId }) => {
       {users.length === 0 && (
         <div className="text-center py-6 text-gray-500">
           <Users className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-          <p className="text-sm">No users added yet</p>
+          <p className="text-sm">
+            {isRealTasking 
+              ? "User management not yet implemented for real taskings" 
+              : "No users added yet"
+            }
+          </p>
         </div>
       )}
     </div>
