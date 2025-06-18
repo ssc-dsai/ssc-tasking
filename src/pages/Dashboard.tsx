@@ -1,6 +1,6 @@
-
 import React, { useState } from 'react';
 import { Sidebar } from '../components/layout/Sidebar';
+import TopHeader from '../components/layout/TopHeader';
 import { BriefingsList } from '../components/briefings/BriefingsList';
 import { ProjectCreationModal } from '../components/project/ProjectCreationModal';
 import { Menu, X, Plus, FolderOpen, FileCheck, Clock } from 'lucide-react';
@@ -44,13 +44,14 @@ const Dashboard: React.FC = () => {
   });
 
   return (
-    <div className="h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex overflow-hidden">
+    <div className="h-screen bg-slate-50 flex overflow-hidden">
       {/* Mobile menu button */}
       <div className="lg:hidden fixed top-4 left-4 z-50">
         <Button
           variant="outline"
-          size="sm"
+          size="icon"
           onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+          className="bg-white shadow-sm border-slate-200"
         >
           {isMobileSidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
         </Button>
@@ -58,11 +59,16 @@ const Dashboard: React.FC = () => {
 
       {/* Mobile sidebar overlay */}
       {isMobileSidebarOpen && (
-        <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40" onClick={() => setIsMobileSidebarOpen(false)} />
+        <div 
+          className="lg:hidden fixed inset-0 bg-black/50 z-30" 
+          onClick={() => setIsMobileSidebarOpen(false)} 
+        />
       )}
 
       {/* Sidebar */}
-      <div className={`${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:relative z-50 transition-transform duration-300`}>
+      <div className={`${
+        isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      } lg:translate-x-0 transition-transform duration-300 ease-in-out`}>
         <Sidebar
           activeTasking={null}
           onTaskingSelect={handleTaskingSelect}
@@ -73,70 +79,80 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <div className="flex-1 p-6 lg:p-8 overflow-y-auto">
-          {/* Header with date and New button */}
-          <div className="flex justify-between items-start mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to SSC Tasking</h1>
-              <p className="text-gray-600">Generate AI-powered briefing notes from your tasking files</p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-500 mb-3">{currentDate}</p>
-              <Button onClick={handleNewTasking} className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
-                <Plus className="w-4 h-4" />
-                <span>New Tasking</span>
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Top Header */}
+        <TopHeader 
+          title="Welcome to SSC Tasking"
+        />
+        
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            {/* Action Button */}
+            <div className="flex justify-end mb-6">
+              <Button 
+                onClick={handleNewTasking} 
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                New Tasking
               </Button>
             </div>
+
+            {/* Analytics Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+              <Card className="bg-white border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-slate-600">Total Taskings</CardTitle>
+                  <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+                    <FolderOpen className="h-4 w-4 text-blue-600" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-slate-900 mb-1">{totalTaskings}</div>
+                  <p className="text-xs text-slate-500">Active workstreams</p>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-white border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-slate-600">Completed</CardTitle>
+                  <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
+                    <FileCheck className="h-4 w-4 text-green-600" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-slate-900 mb-1">{completedTaskings}</div>
+                  <p className="text-xs text-slate-500">Briefings generated</p>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-white border-slate-200 shadow-sm hover:shadow-md transition-shadow sm:col-span-2 lg:col-span-1">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-slate-600">In Progress</CardTitle>
+                  <div className="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center">
+                    <Clock className="h-4 w-4 text-amber-600" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-slate-900 mb-1">{inProgressTaskings}</div>
+                  <p className="text-xs text-slate-500">Ready for analysis</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Briefings List */}
+            <BriefingsList 
+              briefings={mockBriefings} 
+              onBriefingClick={(briefing) => {
+                const tasking = mockTaskings.find(t => t.name === briefing.taskingName);
+                if (tasking) {
+                  navigate(`/taskings/${tasking.id}`);
+                }
+              }}
+            />
           </div>
-
-          {/* Analytics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Taskings</CardTitle>
-                <FolderOpen className="h-4 w-4" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{totalTaskings}</div>
-                <p className="text-xs text-blue-100">Active workstreams</p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white border-0">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Completed</CardTitle>
-                <FileCheck className="h-4 w-4" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{completedTaskings}</div>
-                <p className="text-xs text-green-100">Briefings generated</p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-amber-500 to-orange-500 text-white border-0">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">In Progress</CardTitle>
-                <Clock className="h-4 w-4" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{inProgressTaskings}</div>
-                <p className="text-xs text-amber-100">Ready for analysis</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          <BriefingsList 
-            briefings={mockBriefings} 
-            onBriefingClick={(briefing) => {
-              const tasking = mockTaskings.find(t => t.name === briefing.taskingName);
-              if (tasking) {
-                navigate(`/taskings/${tasking.id}`);
-              }
-            }}
-          />
         </div>
-      </div>
+      </main>
 
       {/* Tasking Creation Modal */}
       <ProjectCreationModal

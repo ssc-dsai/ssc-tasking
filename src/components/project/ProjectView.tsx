@@ -6,6 +6,7 @@ import { BriefingDisplay } from '../briefings/BriefingDisplay';
 import { BriefingModal } from '../briefings/BriefingModal';
 import { Folder, Upload, FileText, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { TaskingUsers } from './TaskingUsers';
 
 interface Project {
   id: string;
@@ -231,56 +232,45 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project }) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-220px)]">
-        {/* Left Column - Briefing Area */}
-        <div className="space-y-4 flex flex-col">
-          {/* Generated Briefing Display */}
-          {generatedBriefing ? (
-            <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-200 p-6 overflow-y-auto">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-2">
-                  <div className="w-6 h-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
-                    <FileText className="w-3 h-3 text-white" />
+      <div className="grid grid-cols-2 grid-rows-2 gap-6 h-[calc(100vh-220px)]">
+        {/* Generated Briefing */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col h-full w-full overflow-hidden">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-2">
+              <div className="w-6 h-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                <FileText className="w-3 h-3 text-white" />
+              </div>
+              <h2 className="text-lg font-semibold text-gray-900">Generated Briefing</h2>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsBriefingModalOpen(true)}
+              className="flex items-center space-x-1"
+            >
+              <Eye className="w-4 h-4" />
+              <span>Full View</span>
+            </Button>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            {generatedBriefing ? (
+              <BriefingDisplay briefing={generatedBriefing} compact={true} />
+            ) : (
+              <div className="flex items-center justify-center h-full text-gray-500 text-center">
+                <div>
+                  <div className="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <FileText className="w-8 h-8 text-gray-400" />
                   </div>
-                  <h2 className="text-lg font-semibold text-gray-900">Generated Briefing</h2>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No briefing generated yet</h3>
+                  <p className="text-gray-600">Upload files and use the assistant below to generate your first briefing.</p>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsBriefingModalOpen(true)}
-                  className="flex items-center space-x-1"
-                >
-                  <Eye className="w-4 h-4" />
-                  <span>Full View</span>
-                </Button>
               </div>
-              <div className="max-h-[400px] overflow-y-auto">
-                <BriefingDisplay briefing={generatedBriefing} compact={true} />
-              </div>
-            </div>
-          ) : (
-            <div className="flex-1 bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center">
-              <div className="text-center p-8">
-                <div className="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <FileText className="w-8 h-8 text-gray-400" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No briefing generated yet</h3>
-                <p className="text-gray-600">Upload files and use the assistant below to generate your first briefing.</p>
-              </div>
-            </div>
-          )}
-
-          {/* Compact Briefing Chat */}
-          <CompactBriefingChat
-            onGenerate={handleGenerateBriefing}
-            isGenerating={isGenerating}
-            hasFiles={files.length > 0}
-            onOpenModal={() => {/* TODO: Open full chat modal */}}
-          />
+            )}
+          </div>
         </div>
 
-        {/* Right Column - Project Files */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col">
+        {/* Project Files */}
+        <div className="row-span-1 col-span-1 bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col h-full overflow-hidden">
           <div className="flex items-center space-x-3 mb-4">
             <div className="w-6 h-6 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
               <Upload className="w-3 h-3 text-white" />
@@ -290,13 +280,28 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project }) => {
               {files.length} files
             </div>
           </div>
-          
-          <div className="flex-1 flex flex-col space-y-4 min-h-0">
+          <div className="flex-1 flex flex-col space-y-4 min-h-0 overflow-y-auto">
             <FileUpload onFileUpload={handleFileUpload} />
             <div className="flex-1 overflow-y-auto">
               <FilesList files={files} onFileRemove={handleFileRemove} />
             </div>
           </div>
+        </div>
+
+        {/* Chat History */}
+        <div className="row-span-1 col-span-1 bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col h-full overflow-hidden">
+          <CompactBriefingChat
+            onGenerate={handleGenerateBriefing}
+            isGenerating={isGenerating}
+            hasFiles={files.length > 0}
+            onOpenModal={() => {/* TODO: Open full chat modal */}}
+          />
+        </div>
+
+        {/* Tasking Users */}
+        <div className="row-span-1 col-span-1 bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col h-full overflow-hidden">
+          {/* Replace 'project.id' with the correct taskingId if needed */}
+          <TaskingUsers taskingId={project.id} />
         </div>
       </div>
 

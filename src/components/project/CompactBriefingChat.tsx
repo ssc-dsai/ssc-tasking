@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Send, MessageSquare, Maximize2 } from 'lucide-react';
@@ -27,21 +26,29 @@ export const CompactBriefingChat: React.FC<CompactBriefingChatProps> = ({
   chatMessages = []
 }) => {
   const [prompt, setPrompt] = useState('');
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatMessages]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!prompt.trim() || !hasFiles || isGenerating) return;
     onGenerate(prompt);
+    setPrompt("");
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col h-full">
-      <div className="flex items-center justify-between mb-3">
+    <div className="bg-white rounded-xl shadow-sm rounded-xl flex flex-col h-full max-h-full">
+      <div className="flex items-center justify-between mb-2">
         <div className="flex items-center space-x-2">
           <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
             <MessageSquare className="w-3 h-3 text-white" />
           </div>
-          <h3 className="text-sm font-semibold text-gray-900">Chat History</h3>
+          <h2 className="text-lg font-semibold text-gray-900">Chat History</h2>
         </div>
         {onOpenModal && (
           <Button variant="ghost" size="sm" onClick={onOpenModal}>
@@ -50,9 +57,9 @@ export const CompactBriefingChat: React.FC<CompactBriefingChatProps> = ({
         )}
       </div>
 
-      {/* Chat Messages with min-height to push form down */}
-      <div className="flex-1 flex flex-col min-h-[200px]">
-        <div className="flex-1 overflow-y-auto mb-4">
+      {/* Chat Messages Area */}
+      <div className="flex-1 flex flex-col min-h-0">
+        <div className="flex-1 overflow-y-auto min-h-0" style={{ maxHeight: '22rem' }}>
           {chatMessages.length > 0 ? (
             <div className="space-y-3">
               {chatMessages.map((message) => (
@@ -69,6 +76,7 @@ export const CompactBriefingChat: React.FC<CompactBriefingChatProps> = ({
                   </div>
                 </div>
               ))}
+              <div ref={messagesEndRef} />
             </div>
           ) : (
             <div className="flex items-center justify-center h-full text-gray-500 text-sm">
@@ -78,7 +86,7 @@ export const CompactBriefingChat: React.FC<CompactBriefingChatProps> = ({
         </div>
 
         {/* Form floated to bottom */}
-        <form onSubmit={handleSubmit} className="space-y-3 mt-auto">
+        <form onSubmit={handleSubmit} className="space-y-3">
           <Textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}

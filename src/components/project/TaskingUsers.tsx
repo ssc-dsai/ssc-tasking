@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -112,11 +111,11 @@ export const TaskingUsers: React.FC<TaskingUsersProps> = ({ taskingId }) => {
         </div>
       )}
 
-      <div className="space-y-2 max-h-[200px] overflow-y-auto">
+      <div className="space-y-2">
         {users.map((user) => (
           <div
             key={user.id}
-            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
+            className={`flex items-center justify-between p-3 rounded-lg border border-gray-200 ${user.role === 'owner' ? 'bg-blue-50' : 'bg-gray-50'}`}
           >
             <div className="flex items-center space-x-3 flex-1 min-w-0">
               <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">

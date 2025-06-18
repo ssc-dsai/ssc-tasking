@@ -1,5 +1,4 @@
-
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useRef } from 'react';
 import { Upload, File, X } from 'lucide-react';
 
 interface FileUploadProps {
@@ -9,6 +8,7 @@ interface FileUploadProps {
 export const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload }) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -35,6 +35,12 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload }) => {
     }
   }, []);
 
+  const handleAreaClick = () => {
+    if (uploadProgress === null && inputRef.current) {
+      inputRef.current.click();
+    }
+  };
+
   const processFiles = async (files: File[]) => {
     // Simulate upload progress
     setUploadProgress(0);
@@ -49,7 +55,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload }) => {
   return (
     <div className="mb-6">
       <div
-        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${
           isDragOver
             ? 'border-primary bg-primary/5'
             : 'border-gray-300 hover:border-gray-400'
@@ -57,6 +63,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload }) => {
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        onClick={handleAreaClick}
       >
         <input
           type="file"
@@ -65,6 +72,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload }) => {
           className="hidden"
           id="file-upload"
           accept=".pdf,.docx,.xlsx,.txt,.csv"
+          ref={inputRef}
         />
         
         {uploadProgress !== null ? (
