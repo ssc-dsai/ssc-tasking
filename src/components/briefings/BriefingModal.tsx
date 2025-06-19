@@ -43,31 +43,33 @@ export const BriefingModal: React.FC<BriefingModalProps> = ({
       <DialogContent className="max-w-6xl max-h-[95vh] p-0">
         {/* Fixed Header - enterprise style */}
         <DialogHeader className="px-8 py-4 border-b border-gray-200 bg-gray-50">
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-lg font-semibold text-gray-900">
-              {briefing.title}
-            </DialogTitle>
-            <div className="flex items-center space-x-2">
-              {onDownload && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onDownload}
-                  className="flex items-center space-x-1 text-xs"
-                >
-                  <Download className="w-3 h-3" />
-                  <span>Download</span>
-                </Button>
-              )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onClose}
-                className="h-7 w-7 p-0"
-              >
-                <X className="h-3 w-3" />
-              </Button>
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <DialogTitle className="text-lg font-semibold text-gray-900">
+                {briefing.title}
+              </DialogTitle>
+              <div className="flex items-center space-x-1 text-xs text-gray-500 mt-1">
+                <span>Created {new Date(briefing.createdAt).toLocaleDateString('en-US', { 
+                  year: 'numeric', 
+                  month: 'short', 
+                  day: 'numeric',
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  hour12: true
+                })}</span>
+              </div>
             </div>
+            {onDownload && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onDownload}
+                className="flex items-center space-x-2 text-xs ml-4"
+              >
+                <Download className="w-3 h-3" />
+                <span>Download</span>
+              </Button>
+            )}
           </div>
         </DialogHeader>
         

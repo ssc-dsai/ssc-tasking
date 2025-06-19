@@ -59,7 +59,6 @@ serve(async (req: Request) => {
         briefings (
           id,
           title,
-          summary,
           created_at
         )
       `)

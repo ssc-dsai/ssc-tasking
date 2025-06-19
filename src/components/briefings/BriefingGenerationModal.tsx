@@ -21,11 +21,11 @@ interface BriefingGenerationModalProps {
 }
 
 const samplePrompts = [
-  "Generate a comprehensive executive briefing analyzing the key findings, risks, and strategic recommendations from the uploaded documents",
-  "Create a detailed analysis briefing covering market insights, competitive landscape, and actionable next steps",
-  "Produce an operational briefing summarizing performance metrics, challenges, and improvement opportunities",
-  "Generate a strategic planning briefing with key insights, SWOT analysis, and recommended actions",
-  "Create a compliance and risk assessment briefing highlighting critical issues and mitigation strategies"
+  "Generate an executive summary briefing analyzing project performance, key deliverables, timeline adherence, and resource efficiency from the uploaded project documents",
+  "Create a governance and risk assessment briefing identifying compliance gaps, security concerns, and mitigation strategies based on the project documentation",
+  "Produce a strategic performance briefing evaluating project ROI, cost-benefit analysis, and operational impact using data from the uploaded files",
+  "Generate a leadership briefing on project status, critical issues, resource needs, and strategic recommendations derived from the project materials",
+  "Create an executive dashboard briefing summarizing project KPIs, budget status, milestone progress, and actionable insights from the uploaded documentation"
 ];
 
 export const BriefingGenerationModal: React.FC<BriefingGenerationModalProps> = ({
@@ -164,20 +164,13 @@ Please create a professional, well-structured briefing document based on the upl
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white">
         <DialogHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-white" />
-              </div>
-              <DialogTitle className="text-xl font-semibold text-gray-900">
-                Generate Briefing
-              </DialogTitle>
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-white" />
             </div>
-            {!isGenerating && (
-              <Button variant="ghost" size="sm" onClick={handleClose}>
-                <X className="w-4 h-4" />
-              </Button>
-            )}
+            <DialogTitle className="text-xl font-semibold text-gray-900">
+              Generate Briefing
+            </DialogTitle>
           </div>
         </DialogHeader>
 
@@ -191,7 +184,7 @@ Please create a professional, well-structured briefing document based on the upl
               id="briefing-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g., Q4 Financial Performance Analysis, Market Research Summary..."
+              placeholder="e.g., AI Initiative Performance Summary, Data Platform ROI Analysis, Automation Program Status Update..."
               className="w-full"
               disabled={isGenerating}
             />
@@ -206,7 +199,7 @@ Please create a professional, well-structured briefing document based on the upl
               id="briefing-prompt"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Describe what you want in your briefing. Be specific about the analysis, insights, or recommendations you're looking for..."
+              placeholder="Describe what you want in your briefing. Focus on performance metrics, efficiency analysis, governance issues, or strategic recommendations needed for leadership review..."
               className="min-h-[120px] resize-none"
               disabled={isGenerating}
             />

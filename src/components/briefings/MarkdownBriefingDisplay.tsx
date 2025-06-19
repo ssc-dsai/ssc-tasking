@@ -54,27 +54,59 @@ export const MarkdownBriefingDisplay: React.FC<MarkdownBriefingDisplayProps> = (
     return sections;
   };
 
-  // Enterprise markdown parser with tight, professional spacing
+  // Enhanced markdown parser for HTML rendering
   const parseMarkdown = (content: string) => {
-    const cleaned = content.trim().replace(/\n\s*\n\s*\n+/g, '\n\n').replace(/^\s+/gm, '');
+    const cleaned = content.trim().replace(/\n\s*\n\s*\n+/g, '\n\n');
     
     return cleaned
-      // Bold and italic
-      .replace(/\*\*(.+?)\*\*/g, '<strong class="font-medium text-gray-900">$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em class="text-gray-700">$1</em>')
+      // Headers (H1-H6) with proper markdown styling
+      .replace(/^### (.+)$/gm, '<h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 border-b border-gray-100 pb-1">$1</h3>')
+      .replace(/^## (.+)$/gm, '<h2 class="text-xl font-bold text-gray-900 mt-8 mb-4 border-b-2 border-gray-200 pb-2">$1</h2>')
+      .replace(/^# (.+)$/gm, '<h1 class="text-2xl font-bold text-gray-900 mt-8 mb-6 border-b-2 border-gray-300 pb-3">$1</h1>')
       
-      // Lists - tight spacing like enterprise apps
-      .replace(/^- (.+)$/gm, '<div class="flex items-start gap-2 mb-1.5"><span class="w-1 h-1 bg-gray-400 rounded-full mt-2 flex-shrink-0"></span><span class="text-gray-700 text-sm leading-5">$1</span></div>')
+      // Code blocks (triple backticks)
+      .replace(/```(\w+)?\n([\s\S]*?)```/g, '<div class="bg-gray-50 border border-gray-200 rounded-md p-4 my-4 font-mono text-sm overflow-x-auto"><code class="text-gray-800">$2</code></div>')
+      
+      // Inline code
+      .replace(/`([^`]+)`/g, '<code class="bg-gray-100 text-gray-800 px-1.5 py-0.5 rounded text-sm font-mono">$1</code>')
+      
+      // Bold and italic with proper markdown styling
+      .replace(/\*\*(.+?)\*\*/g, '<strong class="font-bold text-gray-900">$1</strong>')
+      .replace(/\*([^*]+)\*/g, '<em class="italic text-gray-700">$1</em>')
+      
+      // Blockquotes
+      .replace(/^> (.+)$/gm, '<blockquote class="border-l-4 border-gray-300 pl-4 py-2 my-4 italic text-gray-600 bg-gray-50">$1</blockquote>')
+      
+      // Unordered lists with proper markdown bullets
+      .replace(/^- (.+)$/gm, '<li class="ml-4 mb-2 text-gray-700 leading-relaxed list-disc">$1</li>')
       
       // Numbered lists
-      .replace(/^(\d+)\. (.+)$/gm, '<div class="flex items-start gap-2 mb-1.5"><span class="text-gray-500 text-sm font-medium min-w-[1rem]">$1.</span><span class="text-gray-700 text-sm leading-5">$2</span></div>')
+      .replace(/^(\d+)\. (.+)$/gm, '<li class="ml-4 mb-2 text-gray-700 leading-relaxed list-decimal">$1. $2</li>')
       
-      // Paragraphs - tight spacing
-      .replace(/^(?!<div)(.*?)$/gm, '<p class="text-gray-700 text-sm leading-5 mb-2">$1</p>')
+      // Wrap consecutive list items in ul/ol tags
+      .replace(/(<li[^>]*class="[^"]*list-disc[^"]*"[^>]*>.*?<\/li>)(?:\s*<li[^>]*class="[^"]*list-disc[^"]*"[^>]*>.*?<\/li>)*/gs, '<ul class="my-4 space-y-1">$&</ul>')
+      .replace(/(<li[^>]*class="[^"]*list-decimal[^"]*"[^>]*>.*?<\/li>)(?:\s*<li[^>]*class="[^"]*list-decimal[^"]*"[^>]*>.*?<\/li>)*/gs, '<ol class="my-4 space-y-1">$&</ol>')
       
-      // Clean up
+      // Horizontal rules
+      .replace(/^---$/gm, '<hr class="my-8 border-t-2 border-gray-200">')
+      
+      // Paragraphs with proper spacing
+      .replace(/^(?!<[h|l|b|u|o|c|d])(.*?)$/gm, '<p class="text-gray-700 leading-relaxed mb-4">$1</p>')
+      
+      // Clean up empty paragraphs and extra whitespace
       .replace(/<p[^>]*>\s*<\/p>/g, '')
-      .replace(/\n+/g, ' ');
+      .replace(/\n+/g, ' ')
+      .trim();
+  };
+
+  // Raw markdown display - show the actual markdown syntax
+  const displayRawMarkdown = (content: string) => {
+    // Clean up the content but preserve markdown syntax
+    return content
+      .replace(/^LEts crdeate summary\s*\n?/gm, '')
+      .replace(/^6\/19\/2025,\s*12:00:00\s*AM\s*\n?/gm, '')
+      .replace(/^\d{1,2}\/\d{1,2}\/\d{4},\s*\d{1,2}:\d{2}:\d{2}\s*(AM|PM)\s*\n?/gm, '')
+      .trim();
   };
 
   const sections = parseContentIntoSections(briefing.content);
@@ -127,67 +159,35 @@ export const MarkdownBriefingDisplay: React.FC<MarkdownBriefingDisplayProps> = (
     }
   };
 
-  // Markdown view - tight enterprise styling
+  // Markdown view - show raw markdown syntax
   if (markdownView) {
-    let cleanContent = briefing.content
-      .replace(/^LEts crdeate summary\s*\n?/gm, '')
-      .replace(/^6\/19\/2025,\s*12:00:00\s*AM\s*\n?/gm, '')
-      .replace(/^\d{1,2}\/\d{1,2}\/\d{4},\s*\d{1,2}:\d{2}:\d{2}\s*(AM|PM)\s*\n?/gm, '');
-
-    const formattedContent = cleanContent
-      // Main title - enterprise size and weight
-      .replace(/^# (.+)$/gm, '<h1 class="text-xl font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-200">$1</h1>')
-      // Section headers - clear hierarchy with minimal spacing
-      .replace(/^## (.+)$/gm, '<h2 class="text-base font-semibold text-gray-900 mt-4 mb-2">$1</h2>')
-      // Sub-headers
-      .replace(/^### (.+)$/gm, '<h3 class="text-sm font-medium text-gray-800 mt-3 mb-1.5">$1</h3>')
-      // Convert markdown formatting
-      .replace(/\*\*(.+?)\*\*/g, '<strong class="font-medium text-gray-900">$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em class="text-gray-700">$1</em>')
-      // Lists - tight like enterprise apps
-      .replace(/^- (.+)$/gm, '<div class="flex items-start gap-2 mb-1.5"><span class="w-1 h-1 bg-gray-400 rounded-full mt-2 flex-shrink-0"></span><span class="text-gray-700 text-sm leading-5">$1</span></div>')
-      // Paragraphs - minimal spacing
-      .replace(/\n\n+/g, '</p><p class="mb-2 text-gray-700 text-sm leading-5">')
-      .replace(/\n/g, ' ');
+    const rawContent = displayRawMarkdown(briefing.content);
 
     return (
       <div className="max-w-none">
-        <div 
-          className="text-gray-700"
-          dangerouslySetInnerHTML={{ 
-            __html: formattedContent
-          }}
-        />
+        <pre className="bg-gray-50 border border-gray-200 rounded-lg p-4 font-mono text-sm text-gray-800 whitespace-pre-wrap overflow-x-auto">
+          {rawContent}
+        </pre>
       </div>
     );
   }
 
-  // Card view - tight enterprise sections
+  // Card view - render HTML from sections
   return (
     <div className="space-y-4">
-      {/* Small date at top */}
-      {briefing.createdAt && (
-        <div className="flex items-center justify-end">
-          <div className="flex items-center space-x-1 text-xs text-gray-400">
-            <Calendar className="w-3 h-3" />
-            <span>{new Date(briefing.createdAt).toLocaleString()}</span>
-          </div>
-        </div>
-      )}
-
       {sections.map((section, index) => {
         const formattedContent = parseMarkdown(section.content);
 
         return (
-          <div key={index} className="mb-4">
-            {/* Section Header - clear hierarchy */}
-            <h3 className="text-base font-semibold text-gray-900 mb-2">
+          <div key={index} className="mb-8">
+            {/* Section Header - markdown style */}
+            <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4 border-b-2 border-gray-200 pb-2">
               {section.title}
-            </h3>
+            </h2>
             
-            {/* Section Content - tight spacing */}
+            {/* Section Content - rendered HTML */}
             <div 
-              className="text-gray-700"
+              className="markdown-content prose prose-gray max-w-full"
               dangerouslySetInnerHTML={{ 
                 __html: formattedContent
               }} 

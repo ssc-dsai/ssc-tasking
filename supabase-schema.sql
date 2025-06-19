@@ -39,7 +39,6 @@ CREATE TABLE IF NOT EXISTS public.files (
 CREATE TABLE IF NOT EXISTS public.briefings (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     title TEXT NOT NULL,
-    summary TEXT NOT NULL,
     content TEXT NOT NULL,
     tasking_id UUID REFERENCES public.taskings(id) ON DELETE CASCADE NOT NULL,
     created_by UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,

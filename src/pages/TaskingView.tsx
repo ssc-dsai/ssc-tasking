@@ -12,7 +12,7 @@ import { BriefingModal } from '../components/briefings/BriefingModal';
 import { BriefingGenerationModal } from '../components/briefings/BriefingGenerationModal';
 import { MarkdownBriefingDisplay } from '../components/briefings/MarkdownBriefingDisplay';
 import { ProjectCreationModal } from '../components/project/ProjectCreationModal';
-import { Folder, Upload, FileText, Eye, Menu, X, Plus, Download, FileDown, Users, ChevronRight, ChevronDown } from 'lucide-react';
+import { Folder, Upload, FileText, Eye, Menu, X, Plus, Download, FileDown, Users, ChevronRight, ChevronDown, Expand } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
@@ -25,7 +25,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useChatMessages } from '@/hooks/useChatMessages';
 import { useVectorSearch } from '@/hooks/useVectorSearch';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+
 
 import { useQueryClient } from '@tanstack/react-query';
 import { DEV } from '@/lib/log';
@@ -719,7 +719,7 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
     console.log('📄 [TaskingView] New briefing generated:', briefing.title);
     setMarkdownBriefing({
       ...briefing,
-      createdAt: new Date().toLocaleDateString()
+      createdAt: new Date().toISOString()
     });
     
     // Show success toast
@@ -792,17 +792,14 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
     }
   }, [isRealTasking, realTaskingData]);
 
-  // Always show the most recent briefing first when briefings load
+  // Reset briefing selection if index is out of bounds
   useEffect(() => {
-    if (savedBriefings.length > 0) {
-      console.log('📄 [TaskingView] Briefings changed:', savedBriefings.length, 'briefings');
-      console.log('📄 [TaskingView] Current selectedBriefingIndex:', selectedBriefingIndex);
-      console.log('📄 [TaskingView] First briefing title:', savedBriefings[0]?.title);
-      console.log('📄 [TaskingView] First briefing date:', savedBriefings[0]?.created_at);
+    if (savedBriefings.length > 0 && selectedBriefingIndex >= savedBriefings.length) {
+      console.log('📄 [TaskingView] Current selectedBriefingIndex:', selectedBriefingIndex, 'is out of bounds for', savedBriefings.length, 'briefings');
       console.log('📄 [TaskingView] Setting selectedBriefingIndex to 0');
       setSelectedBriefingIndex(0);
     }
-  }, [savedBriefings.length, selectedBriefingIndex]);
+  }, [savedBriefings.length]);
 
   // Log when briefings are loaded for debugging
   useEffect(() => {
@@ -946,39 +943,33 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                   <h2 className="text-lg font-semibold text-gray-900">Generated Briefing</h2>
                   
                   {/* Briefing Selector */}
-                  {savedBriefings.length > 0 && (
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xs text-gray-500 bg-green-50 text-green-700 px-2 py-1 rounded-full">
-                        {savedBriefings.length} saved briefing{savedBriefings.length > 1 ? 's' : ''}
-                      </span>
-                      {savedBriefings.length > 1 && (
-                        <Select 
-                          value={selectedBriefingIndex.toString()} 
-                          onValueChange={(value) => setSelectedBriefingIndex(parseInt(value))}
-                        >
-                          <SelectTrigger className="w-56">
-                            <SelectValue placeholder="Select briefing..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {savedBriefings.map((briefing, index) => (
-                              <SelectItem key={briefing.id} value={index.toString()}>
-                                <div className="flex flex-col items-start">
-                                  <span className="font-medium">{briefing.title}</span>
-                                  <span className="text-xs text-gray-500">
-                                    {getTimeAgo(briefing.created_at)}
-                                  </span>
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                      {savedBriefings.length === 1 && (
-                        <span className="text-xs text-gray-600 italic">
-                          "{savedBriefings[0].title}"
-                        </span>
-                      )}
-                    </div>
+                  {savedBriefings.length > 1 && (
+                    <Select 
+                      value={selectedBriefingIndex.toString()} 
+                      onValueChange={(value) => setSelectedBriefingIndex(parseInt(value))}
+                    >
+                      <SelectTrigger className="w-80">
+                        <SelectValue placeholder="Select briefing..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {savedBriefings.map((briefing, index) => (
+                          <SelectItem key={briefing.id} value={index.toString()}>
+                            <div className="flex flex-col items-start">
+                              <span className="font-medium text-sm">{briefing.title}</span>
+                              <span className="text-xs text-gray-500">
+                                {getTimeAgo(briefing.created_at)}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  
+                  {savedBriefings.length === 1 && (
+                    <span className="text-sm text-gray-600 italic">
+                      "{savedBriefings[0].title}"
+                    </span>
                   )}
                 </div>
 
@@ -995,49 +986,52 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                   </Button>
 
                   {(generatedBriefing || markdownBriefing || savedBriefings.length > 0) && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm">
-                          <Eye className="w-4 h-4 mr-1" />
-                          <span>Actions</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem 
-                          onClick={() => setIsMarkdownView(!isMarkdownView)}
-                          className="flex items-center space-x-2"
-                        >
-                          <FileText className="w-4 h-4" />
-                          <span>{isMarkdownView ? 'Card View' : 'Markdown View'}</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={handleDownloadBriefing}
-                          className="flex items-center space-x-2"
-                        >
-                          <Download className="w-4 h-4" />
-                          <span>Download</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => setIsBriefingModalOpen(true)}
-                          className="flex items-center space-x-2"
-                        >
-                          <Eye className="w-4 h-4" />
-                          <span>Full View</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex items-center space-x-1">
+                      {/* Markdown View Toggle */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsMarkdownView(!isMarkdownView)}
+                        title={isMarkdownView ? 'Switch to Card View' : 'Switch to Markdown View'}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      
+                      {/* Download Button */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleDownloadBriefing}
+                        title="Download Briefing"
+                        className="h-8 w-8 p-0"
+                      >
+                        <Download className="w-4 h-4" />
+                      </Button>
+                      
+                      {/* Full View Button */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsBriefingModalOpen(true)}
+                        title="Open Full View"
+                        className="h-8 w-8 p-0"
+                      >
+                        <Expand className="w-4 h-4" />
+                      </Button>
+                    </div>
                   )}
                 </div>
               </div>
 
-                            {/* Content */}
+              {/* Content */}
               {savedBriefings[selectedBriefingIndex] ? (
                 <div className="flex-1 overflow-y-auto">
                   <MarkdownBriefingDisplay 
                     briefing={{
                       title: savedBriefings[selectedBriefingIndex].title,
                       content: savedBriefings[selectedBriefingIndex].content,
-                      createdAt: new Date(savedBriefings[selectedBriefingIndex].created_at).toLocaleDateString()
+                      createdAt: savedBriefings[selectedBriefingIndex].created_at
                     }}
                     markdownView={isMarkdownView}
                   />
