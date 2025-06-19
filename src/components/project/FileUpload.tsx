@@ -1,8 +1,17 @@
 import React, { useCallback, useState, useRef } from 'react';
 import { Upload, File, X } from 'lucide-react';
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Configure PDF.js worker - use local file for reliability
+pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
+
+interface ProcessedFile {
+  file: File;
+  extractedText?: string;
+}
 
 interface FileUploadProps {
-  onFileUpload: (files: File[]) => void;
+  onFileUpload: (files: ProcessedFile[]) => void;
   isUploading?: boolean;
   uploadProgress?: number | null;
 }
@@ -42,6 +51,8 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     if (e.target.files) {
       const files = Array.from(e.target.files);
       processFiles(files);
+      // Reset the input so the same file can be selected again if needed
+      e.target.value = '';
     }
   }, []);
 
@@ -51,19 +62,136 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     }
   };
 
-  const processFiles = async (files: File[]) => {
-    if (externalIsUploading) {
-      // Real upload - just call the handler, progress managed externally
-      onFileUpload(files);
-    } else {
-      // Mock upload - simulate progress
-      setUploadProgress(0);
-      for (let i = 0; i <= 100; i += 10) {
-        await new Promise(resolve => setTimeout(resolve, 50));
-        setUploadProgress(i);
+  const extractTextFromPDF = async (file: File): Promise<string> => {
+    try {
+      console.log('📄 [Client PDF] Extracting text from:', file.name);
+      
+      const arrayBuffer = await file.arrayBuffer();
+      
+      // Try to load the PDF with different worker configurations if needed
+      let pdf;
+      try {
+        pdf = await pdfjsLib.getDocument({ 
+          data: arrayBuffer,
+          verbosity: 0 // Suppress console output
+        }).promise;
+      } catch (workerError) {
+        console.log('⚠️ [Client PDF] Worker failed, trying without worker...');
+        // Fallback: disable worker for this operation
+        const originalWorkerSrc = pdfjsLib.GlobalWorkerOptions.workerSrc;
+        pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+        
+        try {
+          pdf = await pdfjsLib.getDocument({ 
+            data: arrayBuffer,
+            verbosity: 0
+          }).promise;
+        } finally {
+          // Restore original worker configuration
+          pdfjsLib.GlobalWorkerOptions.workerSrc = originalWorkerSrc;
+        }
       }
+      
+      console.log(`📄 [Client PDF] Loaded PDF with ${pdf.numPages} pages`);
+      
+      let fullText = '';
+      
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        try {
+          const page = await pdf.getPage(pageNum);
+          const textContent = await page.getTextContent();
+          
+          const pageText = textContent.items
+            .map((item: any) => item.str || '')
+            .join(' ');
+          
+          if (pageText.trim()) {
+            fullText += pageText + '\n\n';
+          }
+          
+          console.log(`📄 [Client PDF] Page ${pageNum}: ${pageText.length} characters`);
+        } catch (pageError) {
+          console.error(`❌ [Client PDF] Error on page ${pageNum}:`, pageError);
+          // Continue with other pages
+        }
+      }
+      
+      const cleanedText = fullText.trim();
+      console.log(`📄 [Client PDF] Total extracted: ${cleanedText.length} characters`);
+      
+      if (cleanedText.length > 0) {
+        console.log(`📄 [Client PDF] Sample: "${cleanedText.substring(0, 200)}..."`);
+        return cleanedText;
+      } else {
+        throw new Error('No text content found in PDF');
+      }
+    } catch (error) {
+      console.error('❌ [Client PDF] Extraction failed:', error);
+      throw new Error(`Failed to extract text from PDF: ${error.message}`);
+    }
+  };
+
+  const extractTextFromFile = async (file: File): Promise<string> => {
+    const fileType = file.type.toLowerCase();
+    const fileName = file.name.toLowerCase();
+    
+    if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
+      return await extractTextFromPDF(file);
+    } else if (fileType === 'text/plain' || fileName.endsWith('.txt')) {
+      return await file.text();
+    } else if (fileName.endsWith('.rtf')) {
+      // Basic RTF text extraction (remove RTF formatting)
+      const rtfContent = await file.text();
+      return rtfContent.replace(/\\[a-z]+\d*\s?/g, '').replace(/[{}]/g, '').trim();
+    }
+    
+    throw new Error(`Unsupported file type: ${fileType}`);
+  };
+
+  const processFiles = async (files: File[]) => {
+    try {
+      console.log('🔄 [File Processing] Processing', files.length, 'files');
+      
+      const processedFiles: ProcessedFile[] = [];
+      
+      for (const file of files) {
+        try {
+          console.log('🔄 [File Processing] Processing:', file.name);
+          
+          const extractedText = await extractTextFromFile(file);
+          
+          processedFiles.push({
+            file,
+            extractedText
+          });
+          
+          console.log('✅ [File Processing] Successfully processed:', file.name);
+        } catch (error) {
+          console.error('❌ [File Processing] Failed to process:', file.name, error);
+          
+          // Add file without extracted text (will be handled by server)
+          processedFiles.push({
+            file
+          });
+        }
+      }
+      
+      if (externalIsUploading) {
+        // Real upload - call the handler with processed files
+        onFileUpload(processedFiles);
+      } else {
+        // Mock upload - simulate progress
+        setUploadProgress(0);
+        for (let i = 0; i <= 100; i += 10) {
+          await new Promise(resolve => setTimeout(resolve, 50));
+          setUploadProgress(i);
+        }
+        setUploadProgress(null);
+        onFileUpload(processedFiles);
+      }
+    } catch (error) {
+      console.error('❌ [File Processing] Processing failed:', error);
       setUploadProgress(null);
-      onFileUpload(files);
     }
   };
 
@@ -86,7 +214,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           onChange={handleFileInput}
           className="hidden"
           id="file-upload"
-          accept=".pdf,.docx,.xlsx,.txt,.csv"
+          accept=".pdf,.txt,.rtf"
           ref={inputRef}
         />
         
@@ -121,7 +249,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
                 </label>
               </p>
               <p className="text-sm text-gray-500 mt-1">
-                Supports PDF, DOCX, XLSX, TXT, CSV (max 10MB each)
+                Supports PDF, TXT, and RTF files only (max 10MB each)
               </p>
             </div>
           </div>

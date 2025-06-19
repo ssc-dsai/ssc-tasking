@@ -2,6 +2,11 @@ import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../contexts/AuthContext'
 
+interface ProcessedFile {
+  file: File;
+  extractedText?: string;
+}
+
 interface UploadedFile {
   id: string;
   name: string;
@@ -28,10 +33,13 @@ export const useFileUpload = (taskingId: string, options: UseFileUploadOptions =
   const [uploadProgress, setUploadProgress] = useState<number | null>(null)
 
   const uploadMutation = useMutation({
-    mutationFn: async (file: File): Promise<UploadResponse> => {
+    mutationFn: async (processedFile: ProcessedFile): Promise<UploadResponse> => {
+      const { file, extractedText } = processedFile;
+      
       console.log('🔄 [File Upload] Starting upload for:', file.name)
       console.log('🔄 [File Upload] TaskingId:', taskingId)
       console.log('🔄 [File Upload] Session exists:', !!session)
+      console.log('🔄 [File Upload] Has extracted text:', !!extractedText)
       
       if (!session) {
         throw new Error('No session available')
@@ -45,6 +53,12 @@ export const useFileUpload = (taskingId: string, options: UseFileUploadOptions =
       // Create form data
       const formData = new FormData()
       formData.append('file', file)
+      
+      // Add extracted text if available
+      if (extractedText) {
+        formData.append('extractedText', extractedText)
+        console.log('📝 [File Upload] Added extracted text:', extractedText.length, 'characters')
+      }
 
       // Edge function URL
       const uploadUrl = `https://dwdznehxubvejbwngnud.supabase.co/functions/v1/upload-file?tasking_id=${taskingId}`

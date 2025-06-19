@@ -199,6 +199,40 @@ export interface Database {
           }
         ]
       }
+      chat_messages: {
+        Row: {
+          id: string
+          tasking_id: string
+          sender: 'user' | 'assistant' | 'system'
+          content: string
+          tokens: number | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tasking_id: string
+          sender: 'user' | 'assistant' | 'system'
+          content: string
+          tokens?: number | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          tasking_id?: string
+          sender?: 'user' | 'assistant' | 'system'
+          content?: string
+          tokens?: number | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_tasking_id_fkey"
+            columns: ["tasking_id"]
+            referencedRelation: "taskings"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never

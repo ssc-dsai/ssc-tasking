@@ -81,6 +81,7 @@ serve(async (req) => {
     // Parse the multipart form data
     const formData = await req.formData()
     const file = formData.get('file') as File
+    const extractedText = formData.get('extractedText') as string | null
     
     if (!file) {
       return new Response(
@@ -93,8 +94,9 @@ serve(async (req) => {
     }
 
     console.log('📁 [Upload File] Processing file:', file.name, 'Size:', file.size)
+    console.log('📝 [Upload File] Has extracted text:', !!extractedText, extractedText ? `(${extractedText.length} chars)` : '')
 
-    // Generate a unique file path following the user_id/tasking_id/filename pattern
+    // Generate a unique file path following the user_id/tasking_id/filename pattern (temporary)
     const fileName = `${user.id}/${taskingId}/${Date.now()}_${file.name}`
     console.log('📁 [Upload File] Generated file path:', fileName)
     
@@ -156,6 +158,40 @@ serve(async (req) => {
     }
 
     console.log('✅ [Upload File] File record created:', fileRecord.id)
+
+    // Trigger file processing for vectorization
+    try {
+      console.log('🔄 [Upload File] Triggering file processing for fileId:', fileRecord.id)
+      const processUrl = `${supabaseUrl}/functions/v1/process-file`
+      console.log('🔄 [Upload File] Process URL:', processUrl)
+      
+      const processResponse = await fetch(processUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': authHeader
+        },
+        body: JSON.stringify({ 
+          fileId: fileRecord.id,
+          extractedText: extractedText || undefined
+        })
+      })
+      
+      console.log('📡 [Upload File] Process response status:', processResponse.status)
+      
+      if (processResponse.ok) {
+        const processResult = await processResponse.json()
+        console.log('✅ [Upload File] File processing triggered successfully:', processResult)
+      } else {
+        const processError = await processResponse.text()
+        console.log('⚠️ [Upload File] File processing trigger failed:', processError)
+        console.log('⚠️ [Upload File] Process response status:', processResponse.status)
+      }
+    } catch (processError) {
+      console.log('⚠️ [Upload File] File processing trigger error:', processError)
+      console.log('⚠️ [Upload File] Error details:', processError instanceof Error ? processError.message : 'Unknown error')
+      // Don't fail the upload if processing fails
+    }
 
     // Return success response
     const response = {

@@ -16,10 +16,11 @@ import { mockTaskings, Tasking } from '@/data/mockData';
 import { useTaskingDetails } from '@/hooks/useTaskingDetails';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useToast } from '@/hooks/use-toast';
-import { getChatCompletion } from '../lib/openai';
+import { getChatCompletion, getChatCompletionWithContext } from '../lib/openai';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useChatMessages } from '@/hooks/useChatMessages';
+import { useVectorSearch } from '@/hooks/useVectorSearch';
 import { useQueryClient } from '@tanstack/react-query';
 import { DEV } from '@/lib/log';
 
@@ -282,6 +283,7 @@ const TaskingView: React.FC = () => {
   const { toast } = useToast();
   const { user, session } = useAuth();
   const queryClient = useQueryClient();
+  const { searchDocuments, isSearching } = useVectorSearch();
 
   // Fetch existing chat history
   const { data: history = [], isLoading: loadingHistory } = useChatMessages(taskingId || '');
@@ -347,14 +349,16 @@ const TaskingView: React.FC = () => {
     }
   });
 
-  const handleFileUpload = (uploadedFiles: File[]) => {
-    if (isRealTasking && uploadedFiles.length > 0) {
+  const handleFileUpload = (processedFiles: { file: File; extractedText?: string }[]) => {
+    if (isRealTasking && processedFiles.length > 0) {
       // Real upload for real taskings
-      console.log('🔄 [TaskingView] Starting real upload for:', uploadedFiles[0].name);
-      uploadFile(uploadedFiles[0]); // Upload first file
+      const processedFile = processedFiles[0];
+      console.log('🔄 [TaskingView] Starting real upload for:', processedFile.file.name);
+      console.log('🔄 [TaskingView] Has extracted text:', !!processedFile.extractedText);
+      uploadFile(processedFile); // Upload first processed file
     } else {
       // Demo mode: simply log, no mock state mutation
-      console.log('🔄 [TaskingView] Mock upload for:', uploadedFiles.map(f => f.name));
+      console.log('🔄 [TaskingView] Mock upload for:', processedFiles.map(pf => pf.file.name));
     }
   };
 
@@ -363,7 +367,7 @@ const TaskingView: React.FC = () => {
   };
 
   const handleGenerateBriefing = async (prompt: string) => {
-    DEV && console.log('[assist] generate');
+    DEV && console.log('[assist] generate with vector search');
     setIsGenerating(true);
 
     const userMessage: ChatMessage = {
@@ -381,14 +385,46 @@ const TaskingView: React.FC = () => {
     }
 
     try {
-      const systemPrompt = 'You are an AI assistant that reviews the uploaded documents for this tasking and produces concise executive briefings.';
+      let aiContent: string;
 
-      DEV && console.log('[assist] openai');
-      const aiContent = await getChatCompletion([
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: prompt }
-      ]);
-      DEV && console.log('[assist] ai len', aiContent.length);
+      // Use vector search if we have files and are in a real tasking
+      if (isRealTasking && files.length > 0) {
+        DEV && console.log('[assist] performing vector search');
+        
+        const searchResult = await searchDocuments(prompt, taskingId || '');
+        
+        if (searchResult && searchResult.results.length > 0) {
+          DEV && console.log('[assist] found', searchResult.results.length, 'relevant chunks');
+          
+          // Use context-aware completion
+          aiContent = await getChatCompletionWithContext(
+            [{ role: 'user', content: prompt }],
+            searchResult.results
+          );
+        } else {
+          DEV && console.log('[assist] no relevant chunks found, using basic completion');
+          aiContent = await getChatCompletion([
+            { 
+              role: 'system', 
+              content: 'You are an AI assistant for document analysis. The user has uploaded files but no relevant content was found for their query. Let them know and ask for clarification.' 
+            },
+            { role: 'user', content: prompt }
+          ]);
+        }
+      } else {
+        // Fallback to basic completion for mock data or no files
+        const systemPrompt = isRealTasking 
+          ? 'You are an AI assistant that reviews uploaded documents. The user has not uploaded any files yet. Please let them know they need to upload PDF or TXT files before you can analyze them.'
+          : 'You are an AI assistant that reviews the uploaded documents for this tasking and produces concise executive briefings.';
+
+        DEV && console.log('[assist] using basic completion');
+        aiContent = await getChatCompletion([
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: prompt }
+        ]);
+      }
+
+      DEV && console.log('[assist] ai response length:', aiContent.length);
 
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -404,7 +440,7 @@ const TaskingView: React.FC = () => {
         console.error('[assist] failed to save AI response:', e);
       }
     } catch (err: any) {
-      console.error('OpenAI error', err);
+      console.error('AI generation error:', err);
       toast({ title: 'AI Error', description: err.message, variant: 'destructive' });
     } finally {
       setIsGenerating(false);
@@ -511,17 +547,7 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
 
     console.log('[ChatSync] Server returned', transformed.length, 'messages');
 
-    setChatMessages(prev => {
-      // Merge without duplication
-      const existingIds = new Set(prev.map(m => m.id));
-      const merged = [...prev];
-      transformed.forEach(m => {
-        if (!existingIds.has(m.id)) merged.push(m);
-      });
-      // Sort chronologically (created_at asc)
-      merged.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-      return merged;
-    });
+    setChatMessages(transformed);
   }, [loadingHistory, history, isRealTasking]);
 
   // Prefill chat with messages returned by get-tasking-details
@@ -537,7 +563,9 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
         content: m.content,
         timestamp: new Date(m.created_at).toLocaleString(),
       }));
-      setChatMessages(initial);
+      
+      // Only set if we don't already have messages to avoid duplicates
+      setChatMessages(prev => prev.length === 0 ? initial : prev);
       DEV && console.log('[chat] prefilled', initial.length);
     }
   }, [isRealTasking, realTaskingData]);
@@ -688,7 +716,7 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col overflow-hidden">
               <CompactBriefingChat
                 onGenerate={handleGenerateBriefing}
-                isGenerating={isGenerating}
+                isGenerating={isGenerating || isSearching}
                 hasFiles={files.length > 0}
                 chatMessages={chatMessages}
               />

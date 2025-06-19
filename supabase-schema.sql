@@ -188,9 +188,9 @@ CREATE POLICY "Users can insert embeddings for their files" ON public.document_e
 -- Function to search similar documents using vector similarity
 CREATE OR REPLACE FUNCTION match_documents(
     query_embedding vector(1536),
-    match_threshold float DEFAULT 0.78,
+    match_threshold float DEFAULT 0.3,
     match_count int DEFAULT 10,
-    tasking_id uuid DEFAULT NULL
+    filter_tasking_id uuid DEFAULT NULL
 )
 RETURNS TABLE (
     id uuid,
@@ -214,7 +214,7 @@ BEGIN
     JOIN taskings ON taskings.id = files.tasking_id
     WHERE 
         taskings.user_id = auth.uid()
-        AND (tasking_id IS NULL OR files.tasking_id = match_documents.tasking_id)
+        AND (filter_tasking_id IS NULL OR files.tasking_id = filter_tasking_id)
         AND 1 - (document_embeddings.embedding <=> query_embedding) > match_threshold
     ORDER BY document_embeddings.embedding <=> query_embedding
     LIMIT match_count;
@@ -249,22 +249,34 @@ VALUES ('documents', 'documents', false)
 ON CONFLICT (id) DO NOTHING;
 
 -- Storage policies for documents bucket
-CREATE POLICY "Users can upload files to their own folder" ON storage.objects
+CREATE POLICY "Users can upload files to their tasking folders" ON storage.objects
     FOR INSERT WITH CHECK (
         bucket_id = 'documents' 
-        AND auth.uid()::text = (storage.foldername(name))[1]
+        AND EXISTS (
+            SELECT 1 FROM public.taskings 
+            WHERE taskings.id::text = (storage.foldername(name))[1]
+            AND taskings.user_id = auth.uid()
+        )
     );
 
-CREATE POLICY "Users can view files in their own folder" ON storage.objects
+CREATE POLICY "Users can view files in their tasking folders" ON storage.objects
     FOR SELECT USING (
         bucket_id = 'documents' 
-        AND auth.uid()::text = (storage.foldername(name))[1]
+        AND EXISTS (
+            SELECT 1 FROM public.taskings 
+            WHERE taskings.id::text = (storage.foldername(name))[1]
+            AND taskings.user_id = auth.uid()
+        )
     );
 
-CREATE POLICY "Users can delete files in their own folder" ON storage.objects
+CREATE POLICY "Users can delete files in their tasking folders" ON storage.objects
     FOR DELETE USING (
         bucket_id = 'documents' 
-        AND auth.uid()::text = (storage.foldername(name))[1]
+        AND EXISTS (
+            SELECT 1 FROM public.taskings 
+            WHERE taskings.id::text = (storage.foldername(name))[1]
+            AND taskings.user_id = auth.uid()
+        )
     );
 
 -- Chat messages table for assistant history

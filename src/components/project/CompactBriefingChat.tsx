@@ -69,7 +69,7 @@ export const CompactBriefingChat: React.FC<CompactBriefingChatProps> = ({
                       ? 'bg-blue-500 text-white' 
                       : 'bg-gray-100 text-gray-900'
                   }`}>
-                    <p>{message.content}</p>
+                    <div className="whitespace-pre-wrap">{message.content}</div>
                     <p className={`text-xs mt-1 ${message.type === 'user' ? 'text-blue-100' : 'text-gray-500'}`}>
                       {message.timestamp}
                     </p>
