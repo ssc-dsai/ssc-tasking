@@ -65,34 +65,8 @@ export type FileRecord = {
   created_at: string;
 };
 
-// Helper function to create a new tasking
-export async function createTasking(userId: string, name: string, description: string, category: 'personal' | 'shared' = 'personal') {
-  console.log('Creating tasking with:', { name, description, category });
-  console.log('Using provided userId:', userId);
-
-  setTimeout(() => {
-    console.log('Still waiting for insert...');
-  }, 3000);
-
-  const { data, error } = await supabase
-    .from('taskings')
-    .insert({
-      name,
-      description,
-      category,
-      user_id: userId,
-    })
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Error creating tasking:', error);
-    throw error;
-  }
-
-  console.log('Successfully created tasking:', data);
-  return data;
-}
+// Note: Tasking creation now uses edge function (create-tasking)
+// See useCreateTasking hook for the new implementation
 
 // Helper function to upload a file to a tasking
 export async function uploadFileToTasking(taskingId: string, file: globalThis.File) {

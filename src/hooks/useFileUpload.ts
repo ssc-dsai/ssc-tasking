@@ -36,10 +36,7 @@ export const useFileUpload = (taskingId: string, options: UseFileUploadOptions =
     mutationFn: async (processedFile: ProcessedFile): Promise<UploadResponse> => {
       const { file, extractedText } = processedFile;
       
-      console.log('🔄 [File Upload] Starting upload for:', file.name)
-      console.log('🔄 [File Upload] TaskingId:', taskingId)
-      console.log('🔄 [File Upload] Session exists:', !!session)
-      console.log('🔄 [File Upload] Has extracted text:', !!extractedText)
+      console.log('🔄 [File Upload] Starting upload:', file.name, `(${file.size} bytes, has text: ${!!extractedText})`);
       
       if (!session) {
         throw new Error('No session available')
@@ -57,13 +54,11 @@ export const useFileUpload = (taskingId: string, options: UseFileUploadOptions =
       // Add extracted text if available
       if (extractedText) {
         formData.append('extractedText', extractedText)
-        console.log('📝 [File Upload] Added extracted text:', extractedText.length, 'characters')
+        console.log('📝 [File Upload] Added extracted text:', extractedText.length, 'characters');
       }
 
       // Edge function URL
       const uploadUrl = `https://dwdznehxubvejbwngnud.supabase.co/functions/v1/upload-file?tasking_id=${taskingId}`
-      
-      console.log('🌐 [File Upload] Uploading to:', uploadUrl)
 
       // Simulate progress updates
       setUploadProgress(0)
@@ -75,10 +70,7 @@ export const useFileUpload = (taskingId: string, options: UseFileUploadOptions =
         })
       }, 200)
 
-      try {
-        console.log('🚀 [File Upload] Making request with token length:', token.length)
-        console.log('🚀 [File Upload] FormData contains file:', !!formData.get('file'))
-        
+      try {        
         const response = await fetch(uploadUrl, {
           method: 'POST',
           headers: {
@@ -90,28 +82,21 @@ export const useFileUpload = (taskingId: string, options: UseFileUploadOptions =
         clearInterval(progressInterval)
         setUploadProgress(100)
 
-        console.log('📡 [File Upload] Response status:', response.status)
-        console.log('📡 [File Upload] Response headers:', response.headers)
-
         if (!response.ok) {
           const errorData = await response.text()
-          console.log('❌ [File Upload] Upload failed:', response.status, errorData)
-          console.log('❌ [File Upload] Full response:', response)
+          console.error('❌ [File Upload] Upload failed:', response.status, errorData);
           throw new Error(`Upload failed (${response.status}): ${errorData}`)
         }
 
         const data = await response.json() as UploadResponse
-        console.log('✅ [File Upload] Upload successful:', data)
-        console.log('✅ [File Upload] File details:', data.file)
+        console.log('✅ [File Upload] Upload successful:', file.name, '-> File ID:', data.file.id);
         
         // Complete progress
         setTimeout(() => setUploadProgress(null), 1000)
         
         return data
       } catch (error) {
-        console.error('💥 [File Upload] Caught error during upload:', error)
-        console.error('💥 [File Upload] Error type:', typeof error)
-        console.error('💥 [File Upload] Error details:', error instanceof Error ? error.message : error)
+        console.error('❌ [File Upload] Upload error:', error instanceof Error ? error.message : 'Unknown error');
         clearInterval(progressInterval)
         setUploadProgress(null)
         throw error

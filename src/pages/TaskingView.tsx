@@ -1,15 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sidebar } from '../components/layout/Sidebar';
 import TopHeader from '../components/layout/TopHeader';
-import { FileUpload } from '../components/project/FileUpload';
+import * as pdfjsLib from 'pdfjs-dist';
+
 import { FilesList } from '../components/project/FilesList';
 import { TaskingUsers } from '../components/project/TaskingUsers';
 import { CompactBriefingChat } from '../components/project/CompactBriefingChat';
 import { BriefingDisplay } from '../components/briefings/BriefingDisplay';
 import { BriefingModal } from '../components/briefings/BriefingModal';
+import { BriefingGenerationModal } from '../components/briefings/BriefingGenerationModal';
+import { MarkdownBriefingDisplay } from '../components/briefings/MarkdownBriefingDisplay';
 import { ProjectCreationModal } from '../components/project/ProjectCreationModal';
-import { Folder, Upload, FileText, Eye, Menu, X, Plus, Download, FileDown, Users, ChevronRight } from 'lucide-react';
+import { Folder, Upload, FileText, Eye, Menu, X, Plus, Download, FileDown, Users, ChevronRight, ChevronDown } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { mockTaskings, Tasking } from '@/data/mockData';
@@ -21,6 +25,8 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useChatMessages } from '@/hooks/useChatMessages';
 import { useVectorSearch } from '@/hooks/useVectorSearch';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+
 import { useQueryClient } from '@tanstack/react-query';
 import { DEV } from '@/lib/log';
 
@@ -199,6 +205,9 @@ const mockBriefingNote = {
   projectId: '1'
 };
 
+// Configure PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
+
 const TaskingView: React.FC = () => {
   const { taskingId } = useParams();
   const navigate = useNavigate();
@@ -207,11 +216,23 @@ const TaskingView: React.FC = () => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isTaskingModalOpen, setIsTaskingModalOpen] = useState(false);
   const [isBriefingModalOpen, setIsBriefingModalOpen] = useState(false);
+  const [isBriefingGenerationModalOpen, setIsBriefingGenerationModalOpen] = useState(false);
   const [isMarkdownView, setIsMarkdownView] = useState(false);
+  const [selectedBriefingIndex, setSelectedBriefingIndex] = useState(0);
   
   // Chat assistant UI state
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  
+  // Generated markdown briefing state
+  const [markdownBriefing, setMarkdownBriefing] = useState<{
+    title: string;
+    content: string;
+    createdAt: string;
+  } | null>(null);
+
+  // File upload ref for header button
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Any taskingId other than '1' (our demo) will be treated as real
   const isRealTasking = taskingId !== '1';
@@ -284,10 +305,29 @@ const TaskingView: React.FC = () => {
   const { user, session } = useAuth();
   const queryClient = useQueryClient();
   const { searchDocuments, isSearching } = useVectorSearch();
+  
+  // Helper to check if we have files
+  const hasFiles = files.length > 0;
 
   // Fetch existing chat history
   const { data: history = [], isLoading: loadingHistory } = useChatMessages(taskingId || '');
+  
+  // Get briefings from existing tasking data (much simpler!)
+  const savedBriefings = isRealTasking && realTaskingData?.data?.briefings ? realTaskingData.data.briefings : [];
+  
+  // Debug logging - only log when values actually change
+  useEffect(() => {
+    console.log('📄 [TaskingView] Briefings from tasking data:', savedBriefings.length);
+    if (savedBriefings.length > 0) {
+      console.log('📄 [TaskingView] All briefings:', savedBriefings.map((b, i) => `${i}: ${b.title} (${new Date(b.created_at).toLocaleString()})`));
+    }
+  }, [savedBriefings.length]);
 
+  useEffect(() => {
+    console.log('🔍 [TaskingView] Debug - isRealTasking:', isRealTasking, 'taskingId:', taskingId);
+    console.log('🔍 [TaskingView] Debug - user:', user?.id, 'session:', !!session);
+  }, [isRealTasking, taskingId, user?.id, !!session]);
+  
   // helper to persist message
   const persistChat = async (sender: 'user' | 'assistant' | 'system', content: string) => {
     if (!isRealTasking) return;
@@ -364,6 +404,124 @@ const TaskingView: React.FC = () => {
 
   const handleFileRemove = (fileId: string) => {
     console.log('Remove requested for file', fileId, '— implement as needed');
+  };
+
+  // PDF text extraction function (copied from FileUpload component)
+  const extractTextFromPDF = async (file: File): Promise<string> => {
+    try {
+      console.log('📄 [TaskingView PDF] Starting extraction for:', file.name);
+      console.log('📄 [TaskingView PDF] PDF.js version:', pdfjsLib.version || 'unknown');
+      
+      const arrayBuffer = await file.arrayBuffer();
+      console.log('📄 [TaskingView PDF] File loaded as ArrayBuffer, size:', arrayBuffer.byteLength);
+      
+      // Try to load the PDF
+      let pdf;
+      try {
+        console.log('📄 [TaskingView PDF] Attempting to load PDF document...');
+        pdf = await pdfjsLib.getDocument({ 
+          data: arrayBuffer,
+          verbosity: 0
+        }).promise;
+        console.log('📄 [TaskingView PDF] PDF document loaded successfully');
+      } catch (workerError) {
+        console.warn('⚠️ [TaskingView PDF] Primary load failed:', workerError.message);
+        throw new Error(`PDF loading failed: ${workerError.message}`);
+      }
+      
+      console.log(`📄 [TaskingView PDF] Loaded PDF with ${pdf.numPages} pages`);
+      
+      let fullText = '';
+      const maxPages = Math.min(pdf.numPages, 50);
+      
+      for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
+        try {
+          const page = await pdf.getPage(pageNum);
+          const textContent = await page.getTextContent();
+          
+          const textItems: string[] = [];
+          
+          for (const item of textContent.items) {
+            if (item && typeof item === 'object') {
+              let text = '';
+              
+              if ('str' in item && typeof item.str === 'string') {
+                text = item.str;
+              }
+              
+              if (text && text.trim().length > 0) {
+                const cleanText = text
+                  .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '')
+                  .replace(/[^\x20-\x7E\s\u00A0-\uFFFF]/g, '')
+                  .trim();
+                
+                if (cleanText && /[a-zA-Z0-9]/.test(cleanText)) {
+                  textItems.push(cleanText);
+                }
+              }
+            }
+          }
+          
+          if (textItems.length > 0) {
+            const pageText = textItems.join(' ')
+              .replace(/\s+/g, ' ')
+              .trim();
+            
+            if (pageText.length > 0) {
+              fullText += pageText + '\n\n';
+            }
+          }
+          
+          if (pageNum % 10 === 0 || pageNum === maxPages) {
+            console.log(`📄 [TaskingView PDF] Processed ${pageNum}/${maxPages} pages`);
+          }
+        } catch (pageError) {
+          console.warn(`⚠️ [TaskingView PDF] Error on page ${pageNum}:`, pageError.message);
+        }
+      }
+      
+      const cleanedText = fullText.trim();
+      console.log(`📄 [TaskingView PDF] Total extracted: ${cleanedText.length} characters`);
+      
+      if (cleanedText.length > 0) {
+        const readableChars = cleanedText.match(/[a-zA-Z0-9\s]/g);
+        const readabilityRatio = readableChars ? readableChars.length / cleanedText.length : 0;
+        
+        console.log(`📄 [TaskingView PDF] Text analysis: ${readabilityRatio.toFixed(2)} readability ratio`);
+        if (cleanedText.length > 50) {
+          const firstChars = cleanedText.substring(0, 50);
+          console.log(`📄 [TaskingView PDF] First 50 chars:`, firstChars);
+        }
+        
+        if (readabilityRatio < 0.5) {
+          console.warn('⚠️ [TaskingView PDF] Low readability ratio - possible encoding issues');
+        }
+        
+        return cleanedText;
+      } else {
+        throw new Error('No readable text content found in PDF');
+      }
+    } catch (error) {
+      console.error('❌ [TaskingView PDF] Extraction failed:', error);
+      throw new Error(`Failed to extract text from PDF: ${error.message}`);
+    }
+  };
+
+  const extractTextFromFile = async (file: File): Promise<string> => {
+    const fileType = file.type.toLowerCase();
+    const fileName = file.name.toLowerCase();
+    
+    console.log('📄 [TaskingView] File type detection:', fileType, 'fileName:', fileName);
+    
+    if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
+      console.log('📄 [TaskingView] Detected PDF, using PDF extraction');
+      return await extractTextFromPDF(file);
+    } else if (fileType === 'text/plain' || fileName.endsWith('.txt')) {
+      console.log('📄 [TaskingView] Detected TXT, using text extraction');
+      return await file.text();
+    }
+    
+    throw new Error(`Unsupported file type: ${fileType}`);
   };
 
   const handleGenerateBriefing = async (prompt: string) => {
@@ -448,9 +606,25 @@ const TaskingView: React.FC = () => {
   };
 
   const handleDownloadBriefing = () => {
-    if (!generatedBriefing) return;
+    let briefingText = '';
+    let filename = '';
+    let mimeType = 'text/plain';
+
+    const selectedSavedBriefing = savedBriefings[selectedBriefingIndex];
     
-    const briefingText = `
+    if (selectedSavedBriefing) {
+      // Download saved briefing as markdown
+      briefingText = selectedSavedBriefing.content;
+      filename = `${selectedSavedBriefing.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.md`;
+      mimeType = 'text/markdown';
+    } else if (markdownBriefing) {
+      // Download markdown briefing as markdown
+      briefingText = markdownBriefing.content;
+      filename = `${markdownBriefing.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.md`;
+      mimeType = 'text/markdown';
+    } else if (generatedBriefing) {
+      // Download structured briefing as text
+      briefingText = `
 ${generatedBriefing.title}
 Generated: ${generatedBriefing.createdAt}
 
@@ -468,13 +642,17 @@ ${generatedBriefing.recommendations.map((rec, i) => `${i + 1}. ${rec}`).join('\n
 
 NEXT STEPS
 ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
-    `;
+      `;
+      filename = `${generatedBriefing.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.txt`;
+    } else {
+      return; // No briefing to download
+    }
     
-    const blob = new Blob([briefingText], { type: 'text/plain' });
+    const blob = new Blob([briefingText], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${generatedBriefing.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.txt`;
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -534,6 +712,50 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
     setIsTaskingModalOpen(false);
   };
 
+  const handleBriefingGenerated = (briefing: {
+    title: string;
+    content: string;
+  }) => {
+    console.log('📄 [TaskingView] New briefing generated:', briefing.title);
+    setMarkdownBriefing({
+      ...briefing,
+      createdAt: new Date().toLocaleDateString()
+    });
+    
+    // Show success toast
+    toast({
+      title: "Briefing Generated Successfully",
+      description: `"${briefing.title}" has been created and saved to the database.`,
+    });
+    
+    // Refresh tasking data to get updated briefings
+    queryClient.invalidateQueries({ queryKey: ['tasking-details', taskingId] });
+    
+    // Ensure we select the newest briefing (will be index 0 after refresh)
+    console.log('📄 [TaskingView] Setting selection to 0 for new briefing');
+    setSelectedBriefingIndex(0);
+  };
+
+  // Helper function to format time ago
+  const getTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMs = now.getTime() - date.getTime();
+    const diffInHours = diffInMs / (1000 * 60 * 60);
+    const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+    
+    if (diffInHours < 1) {
+      const minutes = Math.floor(diffInMs / (1000 * 60));
+      return `${minutes}m ago`;
+    } else if (diffInHours < 24) {
+      return `${Math.floor(diffInHours)}h ago`;
+    } else if (diffInDays < 7) {
+      return `${Math.floor(diffInDays)}d ago`;
+    } else {
+      return date.toLocaleDateString();
+    }
+  };
+
   // Sync server history into local state once loaded
   useEffect(() => {
     if (!isRealTasking || loadingHistory) return;
@@ -570,6 +792,67 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
     }
   }, [isRealTasking, realTaskingData]);
 
+  // Always show the most recent briefing first when briefings load
+  useEffect(() => {
+    if (savedBriefings.length > 0) {
+      console.log('📄 [TaskingView] Briefings changed:', savedBriefings.length, 'briefings');
+      console.log('📄 [TaskingView] Current selectedBriefingIndex:', selectedBriefingIndex);
+      console.log('📄 [TaskingView] First briefing title:', savedBriefings[0]?.title);
+      console.log('📄 [TaskingView] First briefing date:', savedBriefings[0]?.created_at);
+      console.log('📄 [TaskingView] Setting selectedBriefingIndex to 0');
+      setSelectedBriefingIndex(0);
+    }
+  }, [savedBriefings.length, selectedBriefingIndex]);
+
+  // Log when briefings are loaded for debugging
+  useEffect(() => {
+    if (isRealTasking && savedBriefings.length > 0) {
+      console.log('📄 [TaskingView] Briefings loaded:', savedBriefings.length, 'briefings');
+      console.log('📄 [TaskingView] Latest briefing:', savedBriefings[0].title);
+    }
+  }, [savedBriefings, isRealTasking]);
+
+  // Header upload button handler
+  const handleHeaderUploadClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleHeaderFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      console.log('🔄 [TaskingView] Processing', files.length, 'file(s) from header upload');
+      
+      // Process files with text extraction
+      const processedFiles = [];
+      
+      for (const file of files) {
+        console.log('🔄 [TaskingView] Processing file:', file.name, `(${file.type}, ${file.size} bytes)`);
+        
+        try {
+          const extractedText = await extractTextFromFile(file);
+          processedFiles.push({
+            file,
+            extractedText
+          });
+          console.log('✅ [TaskingView] Successfully extracted text from:', file.name, `(${extractedText.length} chars)`);
+        } catch (error) {
+          console.error('❌ [TaskingView] Text extraction failed for:', file.name, error instanceof Error ? error.message : 'Unknown error');
+          
+          // Add file without extracted text (server will handle it)
+          processedFiles.push({
+            file
+          });
+          console.log('⚠️ [TaskingView] Added file without text extraction, server will handle');
+        }
+      }
+      
+      handleFileUpload(processedFiles);
+      e.target.value = ''; // Reset input
+    }
+  };
+
   // Loading / error handling for real taskings
   if (isRealTasking) {
     if (isLoadingReal || !realTaskingData) {
@@ -587,6 +870,8 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
       );
     }
   }
+
+
 
   return (
     <div className="h-screen bg-slate-50 flex overflow-hidden">
@@ -659,43 +944,109 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                     <FileText className="w-3 h-3 text-white" />
                   </div>
                   <h2 className="text-lg font-semibold text-gray-900">Generated Briefing</h2>
+                  
+                  {/* Briefing Selector */}
+                  {savedBriefings.length > 0 && (
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs text-gray-500 bg-green-50 text-green-700 px-2 py-1 rounded-full">
+                        {savedBriefings.length} saved briefing{savedBriefings.length > 1 ? 's' : ''}
+                      </span>
+                      {savedBriefings.length > 1 && (
+                        <Select 
+                          value={selectedBriefingIndex.toString()} 
+                          onValueChange={(value) => setSelectedBriefingIndex(parseInt(value))}
+                        >
+                          <SelectTrigger className="w-56">
+                            <SelectValue placeholder="Select briefing..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {savedBriefings.map((briefing, index) => (
+                              <SelectItem key={briefing.id} value={index.toString()}>
+                                <div className="flex flex-col items-start">
+                                  <span className="font-medium">{briefing.title}</span>
+                                  <span className="text-xs text-gray-500">
+                                    {getTimeAgo(briefing.created_at)}
+                                  </span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                      {savedBriefings.length === 1 && (
+                        <span className="text-xs text-gray-600 italic">
+                          "{savedBriefings[0].title}"
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
 
-                {generatedBriefing && (
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant={isMarkdownView ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setIsMarkdownView(!isMarkdownView)}
-                      className="flex items-center space-x-1"
-                    >
-                      <FileText className="w-4 h-4" />
-                      <span>Markdown</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleDownloadBriefing}
-                      className="flex items-center space-x-1"
-                    >
-                      <Download className="w-4 h-4" />
-                      <span>Download</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setIsBriefingModalOpen(true)}
-                      className="flex items-center space-x-1"
-                    >
-                      <Eye className="w-4 h-4" />
-                      <span>Full View</span>
-                    </Button>
-                  </div>
-                )}
+                <div className="flex items-center space-x-2">
+                  {/* Generate Briefing Button */}
+                  <Button
+                    onClick={() => setIsBriefingGenerationModalOpen(true)}
+                    disabled={!hasFiles}
+                    className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 flex items-center space-x-1"
+                    size="sm"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Generate</span>
+                  </Button>
+
+                  {(generatedBriefing || markdownBriefing || savedBriefings.length > 0) && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <Eye className="w-4 h-4 mr-1" />
+                          <span>Actions</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem 
+                          onClick={() => setIsMarkdownView(!isMarkdownView)}
+                          className="flex items-center space-x-2"
+                        >
+                          <FileText className="w-4 h-4" />
+                          <span>{isMarkdownView ? 'Card View' : 'Markdown View'}</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={handleDownloadBriefing}
+                          className="flex items-center space-x-2"
+                        >
+                          <Download className="w-4 h-4" />
+                          <span>Download</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => setIsBriefingModalOpen(true)}
+                          className="flex items-center space-x-2"
+                        >
+                          <Eye className="w-4 h-4" />
+                          <span>Full View</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </div>
               </div>
 
-              {/* Content */}
-              {generatedBriefing ? (
+                            {/* Content */}
+              {savedBriefings[selectedBriefingIndex] ? (
+                <div className="flex-1 overflow-y-auto">
+                  <MarkdownBriefingDisplay 
+                    briefing={{
+                      title: savedBriefings[selectedBriefingIndex].title,
+                      content: savedBriefings[selectedBriefingIndex].content,
+                      createdAt: new Date(savedBriefings[selectedBriefingIndex].created_at).toLocaleDateString()
+                    }}
+                    markdownView={isMarkdownView}
+                  />
+                </div>
+              ) : markdownBriefing ? (
+                <div className="flex-1 overflow-y-auto">
+                  <MarkdownBriefingDisplay briefing={markdownBriefing} />
+                </div>
+              ) : generatedBriefing ? (
                 <div className="flex-1 overflow-y-auto">
                   <BriefingDisplay briefing={generatedBriefing} markdownView={isMarkdownView} />
                 </div>
@@ -705,12 +1056,27 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                     <div className="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-xl flex items-center justify-center mx-auto mb-4">
                       <FileText className="w-8 h-8 text-gray-400" />
                     </div>
-                    <p className="text-gray-600">No briefing generated yet</p>
-                    <p className="text-gray-600">Upload files and use the assistant below to generate your first briefing.</p>
+                    <p className="text-gray-600 mb-2">
+                      {isRealTasking ? 'No briefings found for this tasking' : 'No briefing generated yet'}
+                    </p>
+                    <p className="text-gray-500 text-sm mb-4">
+                      {hasFiles 
+                        ? 'Click "Generate" to create your first briefing' 
+                        : 'Upload PDF or TXT files first, then generate a briefing'
+                      }
+                    </p>
+                    <Button
+                      onClick={() => setIsBriefingGenerationModalOpen(true)}
+                      disabled={!hasFiles}
+                      className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Generate Briefing
+                    </Button>
                   </div>
                 </div>
               )}
-            </div>
+             </div>
 
             {/* Chat History and Assistant */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col overflow-hidden">
@@ -722,34 +1088,69 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
               />
             </div>
 
-            {/* Tasking Files */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col overflow-hidden">
-              <div className="flex items-center space-x-3 mb-4 flex-shrink-0">
-                <div className="w-6 h-6 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
-                  <Upload className="w-3 h-3 text-white" />
+            {/* Tasking Files - Minimum 30% height */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col overflow-hidden min-h-[30vh]">
+              <div className="flex items-center justify-between mb-4 flex-shrink-0">
+                <div className="flex items-center space-x-3">
+                  <div className="w-6 h-6 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
+                    <Upload className="w-3 h-3 text-white" />
+                  </div>
+                  <h2 className="text-lg font-semibold text-gray-900">Tasking Files</h2>
+                  <div className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
+                    {files.length} files
+                  </div>
                 </div>
-                <h2 className="text-lg font-semibold text-gray-900">Tasking Files</h2>
-                <div className="ml-auto bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
-                  {files.length} files
+
+                <div className="flex items-center space-x-2">
+                  {/* Upload Button */}
+                  <input
+                    type="file"
+                    multiple
+                    onChange={handleHeaderFileInput}
+                    className="hidden"
+                    accept=".pdf,.txt,.rtf"
+                    ref={fileInputRef}
+                  />
+                  <Button
+                    onClick={handleHeaderUploadClick}
+                    disabled={isRealTasking && isUploading}
+                    className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 flex items-center space-x-1"
+                    size="sm"
+                  >
+                    {isRealTasking && isUploading ? (
+                      <>
+                        <Upload className="w-4 h-4 animate-pulse" />
+                        <span>Uploading...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4" />
+                        <span>Upload</span>
+                      </>
+                    )}
+                  </Button>
                 </div>
               </div>
               
-              <div className="flex-1 flex flex-col space-y-4 min-h-0 overflow-hidden">
-                <div className="flex-shrink-0">
-                  <FileUpload 
-                    onFileUpload={handleFileUpload}
-                    isUploading={isRealTasking && isUploading}
-                    uploadProgress={isRealTasking ? uploadProgress : null}
-                  />
-                </div>
-                <div className="flex-1 overflow-hidden">
+              <div className="flex-1 overflow-hidden">
+                {files.length === 0 ? (
+                  <div className="flex-1 bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center h-full">
+                    <div className="text-center p-8">
+                      <div className="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-xl flex items-center justify-center mx-auto mb-4">
+                        <Upload className="w-8 h-8 text-gray-400" />
+                      </div>
+                      <p className="text-gray-600 mb-2">No files uploaded yet</p>
+                      <p className="text-gray-500 text-sm">Use the "Upload Files" button in the header to add PDF or TXT files</p>
+                    </div>
+                  </div>
+                ) : (
                   <FilesList files={files} onFileRemove={handleFileRemove} />
-                </div>
+                )}
               </div>
             </div>
 
-            {/* Tasking Users */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col overflow-hidden">
+            {/* Tasking Users - Minimum 30% height */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col overflow-hidden min-h-[30vh]">
               <div className="flex items-center space-x-3 mb-4 flex-shrink-0">
                 <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
                   <Users className="w-3 h-3 text-white" />
@@ -770,8 +1171,39 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
           <BriefingModal
             isOpen={isBriefingModalOpen}
             onClose={() => setIsBriefingModalOpen(false)}
-            briefing={generatedBriefing}
+            briefing={savedBriefings[selectedBriefingIndex] ? {
+              id: savedBriefings[selectedBriefingIndex].id,
+              title: savedBriefings[selectedBriefingIndex].title,
+              summary: '', // Saved briefings don't have structured summary
+              keyPoints: [],
+              risks: [],
+              recommendations: [],
+              nextSteps: [],
+              createdAt: new Date(savedBriefings[selectedBriefingIndex].created_at).toLocaleDateString(),
+              projectId: taskingId || '',
+              content: savedBriefings[selectedBriefingIndex].content // Pass the markdown content
+            } : markdownBriefing ? {
+              id: 'markdown',
+              title: markdownBriefing.title,
+              summary: '',
+              keyPoints: [],
+              risks: [],
+              recommendations: [],
+              nextSteps: [],
+              createdAt: markdownBriefing.createdAt,
+              projectId: taskingId || '',
+              content: markdownBriefing.content
+            } : generatedBriefing}
             onDownload={handleDownloadBriefing}
+          />
+
+          {/* Briefing Generation Modal */}
+          <BriefingGenerationModal
+            isOpen={isBriefingGenerationModalOpen}
+            onClose={() => setIsBriefingGenerationModalOpen(false)}
+            taskingId={taskingId || ''}
+            hasFiles={hasFiles}
+            onBriefingGenerated={handleBriefingGenerated}
           />
 
           {/* Tasking Creation Modal */}

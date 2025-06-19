@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { FileText, Calendar, TrendingUp, AlertTriangle, CheckCircle, ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,9 +19,15 @@ interface BriefingDisplayProps {
   briefing: BriefingNote;
   compact?: boolean;
   markdownView?: boolean;
+  hideTitle?: boolean;
 }
 
-export const BriefingDisplay: React.FC<BriefingDisplayProps> = ({ briefing, compact = false, markdownView = false }) => {
+export const BriefingDisplay: React.FC<BriefingDisplayProps> = ({ 
+  briefing, 
+  compact = false, 
+  markdownView = false,
+  hideTitle = false 
+}) => {
   const sectionClass = compact ? "space-y-3" : "space-y-4";
   const titleClass = compact ? "text-base" : "text-lg";
   const contentClass = compact ? "text-sm" : "text-base";
@@ -30,10 +35,12 @@ export const BriefingDisplay: React.FC<BriefingDisplayProps> = ({ briefing, comp
   if (markdownView) {
     return (
       <div className="space-y-6 font-mono text-sm">
-        <div className="border-b border-gray-200 pb-4">
-          <h1 className="text-xl font-bold text-gray-900">{briefing.title}</h1>
-          <p className="text-gray-600 mt-1">Generated: {briefing.createdAt}</p>
-        </div>
+        {!hideTitle && (
+          <div className="border-b border-gray-200 pb-4">
+            <h1 className="text-xl font-bold text-gray-900">{briefing.title}</h1>
+            <p className="text-gray-600 mt-1">Generated: {briefing.createdAt}</p>
+          </div>
+        )}
 
         <div>
           <h2 className="text-lg font-semibold text-gray-900 mb-2">Executive Summary</h2>
@@ -85,18 +92,20 @@ export const BriefingDisplay: React.FC<BriefingDisplayProps> = ({ briefing, comp
 
   return (
     <div className={sectionClass}>
-      {/* Header */}
-      <div className="border-b border-gray-200 pb-4">
-        <div className="flex items-start justify-between">
-          <div>
-            <h2 className={`font-bold text-gray-900 ${titleClass}`}>{briefing.title}</h2>
-            <div className="flex items-center space-x-2 text-sm text-gray-500 mt-1">
-              <Calendar className="w-4 h-4" />
-              <span>{briefing.createdAt}</span>
+      {/* Header - only show if not hidden */}
+      {!hideTitle && (
+        <div className="border-b border-gray-200 pb-4 mb-6">
+          <div className="flex items-start justify-between">
+            <div>
+              <h2 className={`font-bold text-gray-900 ${titleClass}`}>{briefing.title}</h2>
+              <div className="flex items-center space-x-2 text-sm text-gray-500 mt-1">
+                <Calendar className="w-4 h-4" />
+                <span>{briefing.createdAt}</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Executive Summary */}
       <Card className="border-l-4 border-l-blue-500">

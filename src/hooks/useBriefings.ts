@@ -3,34 +3,62 @@ import { supabase } from '../lib/supabase'
 import { Database } from '../lib/database.types'
 import { useAuth } from '../contexts/AuthContext'
 
-type Briefing = Database['public']['Tables']['briefings']['Row']
+export interface Briefing {
+  id: string;
+  title: string;
+  summary: string;
+  content: string;
+  tasking_id: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
 type BriefingInsert = Database['public']['Tables']['briefings']['Insert']
 type BriefingUpdate = Database['public']['Tables']['briefings']['Update']
 
-export const useBriefings = () => {
+export const useBriefings = (taskingId?: string) => {
   const { user } = useAuth()
 
   return useQuery({
-    queryKey: ['briefings', user?.id],
-    queryFn: async () => {
-      if (!user) throw new Error('User not authenticated')
+    queryKey: ['briefings', taskingId, user?.id],
+    queryFn: async (): Promise<Briefing[]> => {
+      console.log('📄 [useBriefings] QueryFn called with:', { taskingId, userId: user?.id });
       
-      const { data, error } = await supabase
-        .from('briefings')
-        .select(`
-          *,
-          taskings (
-            id,
-            name
-          )
-        `)
-        .eq('created_by', user.id)
-        .order('created_at', { ascending: false })
+      if (!taskingId || !user) {
+        console.log('📄 [useBriefings] Skipping fetch - no taskingId or user')
+        return []
+      }
 
-      if (error) throw error
-      return data
+      console.log('📄 [useBriefings] Fetching briefings for tasking:', taskingId, 'user:', user.id)
+
+      console.log('📄 [useBriefings] Starting query...')
+      
+      try {
+        const { data, error } = await supabase
+          .from('briefings')
+          .select('*')
+          .eq('tasking_id', taskingId)
+          .order('created_at', { ascending: false })
+        
+        console.log('📄 [useBriefings] Query completed - data:', data?.length, 'error:', error)
+
+        if (error) {
+          console.error('❌ [useBriefings] Error fetching briefings:', error)
+          throw error
+        }
+
+        console.log('✅ [useBriefings] Fetched', data?.length || 0, 'briefings')
+        return data || []
+      } catch (err) {
+        console.error('📄 [useBriefings] Query exception:', err)
+        throw err
+      }
     },
-    enabled: !!user,
+    enabled: !!taskingId && !!user,
+    staleTime: 30000, // Consider data fresh for 30 seconds
+    retry: 1, // Reduce retries to see errors faster
+    retryDelay: 500, // Faster retry
   })
 }
 

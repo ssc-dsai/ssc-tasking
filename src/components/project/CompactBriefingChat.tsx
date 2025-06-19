@@ -59,7 +59,7 @@ export const CompactBriefingChat: React.FC<CompactBriefingChatProps> = ({
 
       {/* Chat Messages Area */}
       <div className="flex-1 flex flex-col min-h-0">
-        <div className="flex-1 overflow-y-auto min-h-0" style={{ maxHeight: '22rem' }}>
+        <div className="flex-1 overflow-y-auto min-h-0">
           {chatMessages.length > 0 ? (
             <div className="space-y-3">
               {chatMessages.map((message) => (

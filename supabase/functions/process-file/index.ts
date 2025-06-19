@@ -17,98 +17,106 @@ interface ChunkData {
   };
 }
 
-// Function to extract text from PDF (simplified - using pdfjs-dist would be ideal)
+// Function to extract text from PDF - server-side fallback only
 async function extractTextFromPdf(fileBuffer: ArrayBuffer): Promise<string> {
-  try {
-    console.log('📄 [PDF Extract] Starting PDF text extraction with pdf.ts...');
-    
-    // Import pdf.ts - a native Deno PDF parser
-    const { PDFDocument } = await import('https://deno.land/x/pdf@v0.10.0/mod.ts');
-    
-    console.log(`📄 [PDF Extract] Processing PDF buffer of ${fileBuffer.byteLength} bytes`);
-    
-    // Load the PDF document
-    const pdf = await PDFDocument.load(fileBuffer);
-    
-    console.log(`📄 [PDF Extract] Successfully loaded PDF with ${pdf.pages.length} pages`);
-    
-    let fullText = '';
-    
-    // Extract text from each page
-    for (let i = 0; i < pdf.pages.length; i++) {
-      try {
-        const page = pdf.pages[i];
-        const pageText = await page.getTextContent();
-        
-        console.log(`📄 [PDF Extract] Page ${i + 1}: extracted ${pageText.length} characters`);
-        console.log(`📝 [PDF Extract] Page ${i + 1} sample text:`, pageText.slice(0, 300));
-        
-        if (pageText.trim().length > 0) {
-          fullText += pageText + '\n\n';
-        }
-        
-      } catch (pageError) {
-        console.error(`❌ [PDF Extract] Error processing page ${i + 1}:`, pageError);
-        // Continue with other pages
-      }
-    }
-    
-    // Clean the extracted text
-    const cleanedText = fullText
-      .replace(/\r\n/g, '\n') // Normalize line endings
-      .replace(/\r/g, '\n')   // Handle old Mac line endings
-      .replace(/\n{3,}/g, '\n\n') // Limit consecutive newlines
-      .replace(/\s+/g, ' ')   // Normalize spaces
-      .replace(/^\s+|\s+$/gm, '') // Trim lines
-      .trim();
-    
-    console.log(`📄 [PDF Extract] Total extracted text length: ${cleanedText.length} characters`);
-    
-    if (cleanedText.length > 0) {
-      console.log(`📝 [PDF Extract] Sample text: "${cleanedText.substring(0, 200)}${cleanedText.length > 200 ? '...' : ''}"`);
-      return cleanedText;
-    } else {
-      console.log('⚠️ [PDF Extract] No readable text found in PDF');
-      return "No readable text could be extracted from this PDF. The PDF may be image-based, encrypted, or use an unsupported text encoding.";
-    }
-    
-  } catch (error) {
-    console.error('❌ [PDF Extract] pdf.ts extraction error:', error);
-    
-    // Fallback to basic extraction if pdf.ts fails
-    console.log('📄 [PDF Extract] Falling back to basic text extraction...');
-    return await extractTextFromPdfBasic(fileBuffer);
-  }
+  console.log('📄 [PDF Extract] Server-side PDF extraction - fallback only');
+  console.log('⚠️ [PDF Extract] Client-side extraction should be preferred for better results');
+  
+  // Go directly to basic extraction since pdf.ts API was incorrect
+  return await extractTextFromPdfBasic(fileBuffer);
 }
 
 // Fallback basic PDF text extraction
 async function extractTextFromPdfBasic(fileBuffer: ArrayBuffer): Promise<string> {
   try {
-    const decoder = new TextDecoder('latin1');
-    const pdfContent = decoder.decode(fileBuffer);
+    console.log('📄 [PDF Extract] Using basic PDF text extraction');
     
-    // Look for text in parentheses (most common simple PDF text)
-    const textMatches = pdfContent.match(/\(([^)]+)\)/g);
-    if (textMatches) {
-      const extractedText = textMatches
-        .map(match => match.slice(1, -1)) // Remove parentheses
-        .filter(text => text.length > 0 && /[a-zA-Z]/.test(text))
-        .join(' ')
-        .replace(/\\n/g, ' ')
-        .replace(/\\r/g, ' ')
-        .replace(/\\t/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-      
-      if (extractedText.length > 0) {
-        return extractedText;
+    // Try multiple text decoders for better compatibility
+    let pdfContent = '';
+    try {
+      // Try UTF-8 first
+      pdfContent = new TextDecoder('utf-8').decode(fileBuffer);
+    } catch {
+      try {
+        // Fallback to latin1
+        pdfContent = new TextDecoder('latin1').decode(fileBuffer);
+      } catch {
+        // Last resort - ascii
+        pdfContent = new TextDecoder('ascii').decode(fileBuffer);
       }
     }
     
-    return "Could not extract readable text from this PDF using basic extraction.";
+    console.log(`📄 [PDF Extract] Decoded PDF content length: ${pdfContent.length}`);
+    
+    // Multiple extraction strategies
+    const extractedTexts: string[] = [];
+    
+    // Strategy 1: Text in parentheses (most common)
+    const parenthesesMatches = pdfContent.match(/\(([^)]+)\)/g);
+    if (parenthesesMatches) {
+      const parenthesesText = parenthesesMatches
+        .map(match => match.slice(1, -1)) // Remove parentheses
+        .filter(text => text.length > 2 && /[a-zA-Z]/.test(text))
+        .map(text => text
+          .replace(/\\n/g, ' ')
+          .replace(/\\r/g, ' ')
+          .replace(/\\t/g, ' ')
+          .replace(/\\\\/g, '\\')
+          .replace(/\\\(/g, '(')
+          .replace(/\\\)/g, ')')
+        )
+        .join(' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      
+      if (parenthesesText.length > 10) {
+        extractedTexts.push(parenthesesText);
+        console.log(`📄 [PDF Extract] Parentheses strategy: ${parenthesesText.length} chars`);
+      }
+    }
+    
+    // Strategy 2: Text between 'BT' and 'ET' markers (text objects)
+    const btEtMatches = pdfContent.match(/BT\s+.*?ET/gs);
+    if (btEtMatches) {
+      const btEtText = btEtMatches
+        .map(match => {
+          // Extract text from PDF text commands
+          const textCommands = match.match(/\([^)]*\)\s*Tj/g);
+          if (textCommands) {
+            return textCommands
+              .map(cmd => cmd.match(/\(([^)]*)\)/)?.[1] || '')
+              .filter(text => text.length > 0)
+              .join(' ');
+          }
+          return '';
+        })
+        .filter(text => text.length > 0)
+        .join(' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      
+      if (btEtText.length > 10) {
+        extractedTexts.push(btEtText);
+        console.log(`📄 [PDF Extract] BT/ET strategy: ${btEtText.length} chars`);
+      }
+    }
+    
+    // Choose the best extraction result
+    const bestText = extractedTexts.reduce((best, current) => 
+      current.length > best.length ? current : best, '');
+    
+    if (bestText.length > 10) {
+      console.log(`📄 [PDF Extract] Best extraction: ${bestText.length} chars`);
+      console.log(`📄 [PDF Extract] Sample: "${bestText.substring(0, 200)}..."`);
+      return bestText;
+    }
+    
+    console.log('⚠️ [PDF Extract] No readable text found with basic extraction');
+    return "No readable text could be extracted from this PDF using server-side extraction. The PDF may be image-based, encrypted, or use complex formatting. Please ensure client-side extraction is working properly.";
+    
   } catch (error) {
     console.error('❌ [PDF Extract] Basic extraction failed:', error);
-    return `Error extracting PDF text: ${error.message}`;
+    return `Server-side PDF extraction failed: ${error.message}. Please ensure client-side extraction is working.`;
   }
 }
 

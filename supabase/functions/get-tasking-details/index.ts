@@ -94,7 +94,7 @@ serve(async (req: Request) => {
           created_at,
           updated_at
         ),
-        chat_messages!inner (
+        chat_messages (
           id,
           sender,
           content,
@@ -103,6 +103,7 @@ serve(async (req: Request) => {
       `)
       .eq('id', taskingId)
       .eq('user_id', user.id)
+      .order('created_at', { ascending: false, foreignTable: 'briefings' })
       .single()
 
     if (taskingError) {
@@ -147,7 +148,11 @@ serve(async (req: Request) => {
         ...file,
         embedding_count: file.document_embeddings?.length || 0,
         embeddings: file.document_embeddings || []
-      }))
+      })),
+      // Ensure briefings are sorted by created_at DESC (newest first)
+      briefings: tasking.briefings?.sort((a, b) => 
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      ) || []
     }
 
     console.log('Successfully fetched tasking details:', {
@@ -157,6 +162,14 @@ serve(async (req: Request) => {
       briefings: briefingCount,
       embeddings: embeddingCount
     })
+
+    // Log briefing order for debugging
+    if (detailedTasking.briefings.length > 0) {
+      console.log('Briefings order (newest first):')
+      detailedTasking.briefings.forEach((briefing, index) => {
+        console.log(`  ${index}: ${briefing.title} (${briefing.created_at})`)
+      })
+    }
 
     return new Response(
       JSON.stringify({

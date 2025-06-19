@@ -7,8 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Upload, X, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
-import { createTasking, uploadFileToTasking } from '@/lib/supabase';
+import { uploadFileToTasking } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCreateTasking } from '@/hooks/useCreateTasking';
 
 interface ProjectCreationModalProps {
   isOpen: boolean;
@@ -29,6 +30,7 @@ export const ProjectCreationModal: React.FC<ProjectCreationModalProps> = ({
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
+  const createTaskingMutation = useCreateTasking();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,13 +39,15 @@ export const ProjectCreationModal: React.FC<ProjectCreationModalProps> = ({
     setIsSubmitting(true);
     try {
       if (!user) throw new Error('Not authenticated');
-      // Create the tasking
-      const tasking = await createTasking(
-        user.id,
-        name.trim(),
-        description.trim(),
-        'personal'
-      );
+      
+      // Create the tasking using the edge function
+      const result = await createTaskingMutation.mutateAsync({
+        name: name.trim(),
+        description: description.trim(),
+        category: 'personal'
+      });
+      
+      const tasking = result.data;
 
       // Upload files if any
       if (files.length > 0) {

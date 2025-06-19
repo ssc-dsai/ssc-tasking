@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   Dialog,
@@ -7,6 +6,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { BriefingDisplay } from './BriefingDisplay';
+import { MarkdownBriefingDisplay } from './MarkdownBriefingDisplay';
 import { X, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -20,6 +20,7 @@ interface BriefingNote {
   nextSteps: string[];
   createdAt: string;
   projectId: string;
+  content?: string; // Optional markdown content for saved briefings
 }
 
 interface BriefingModalProps {
@@ -39,42 +40,51 @@ export const BriefingModal: React.FC<BriefingModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-0 gap-0">
-        {/* Fixed Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-lg z-10">
-          <DialogHeader>
-            <div className="flex items-center justify-between">
-              <DialogTitle className="text-xl font-bold text-gray-900">
-                {briefing.title}
-              </DialogTitle>
-              <div className="flex items-center space-x-2">
-                {onDownload && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={onDownload}
-                    className="flex items-center space-x-1"
-                  >
-                    <Download className="w-4 h-4" />
-                    <span>Download</span>
-                  </Button>
-                )}
+      <DialogContent className="max-w-6xl max-h-[95vh] p-0">
+        {/* Fixed Header - enterprise style */}
+        <DialogHeader className="px-8 py-4 border-b border-gray-200 bg-gray-50">
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-lg font-semibold text-gray-900">
+              {briefing.title}
+            </DialogTitle>
+            <div className="flex items-center space-x-2">
+              {onDownload && (
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
-                  onClick={onClose}
-                  className="h-8 w-8 p-0"
+                  onClick={onDownload}
+                  className="flex items-center space-x-1 text-xs"
                 >
-                  <X className="h-4 w-4" />
+                  <Download className="w-3 h-3" />
+                  <span>Download</span>
                 </Button>
-              </div>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="h-7 w-7 p-0"
+              >
+                <X className="h-3 w-3" />
+              </Button>
             </div>
-          </DialogHeader>
-        </div>
+          </div>
+        </DialogHeader>
         
-        {/* Scrollable Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
-          <BriefingDisplay briefing={briefing} />
+        {/* Scrollable Content - enterprise spacing */}
+        <div className="px-8 py-6 overflow-y-auto max-h-[calc(95vh-80px)] bg-white">
+          {briefing.content ? (
+            <MarkdownBriefingDisplay 
+              briefing={{
+                title: briefing.title,
+                content: briefing.content,
+                createdAt: briefing.createdAt
+              }}
+              hideTitle={true}
+            />
+          ) : (
+            <BriefingDisplay briefing={briefing} hideTitle={true} />
+          )}
         </div>
       </DialogContent>
     </Dialog>

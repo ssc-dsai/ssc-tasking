@@ -3,10 +3,12 @@ import UserProfile from './UserProfile'
 
 interface TopHeaderProps {
   title?: string
+  actions?: React.ReactNode
 }
 
 const TopHeader: React.FC<TopHeaderProps> = ({ 
-  title = "SSC Tasking"
+  title = "SSC Tasking",
+  actions
 }) => {
   return (
     <header className="bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8 py-2">
@@ -20,6 +22,13 @@ const TopHeader: React.FC<TopHeaderProps> = ({
         </div>
 
         <div className="flex items-center gap-4 ml-4">
+          {/* Action buttons */}
+          {actions && (
+            <div className="flex items-center space-x-2">
+              {actions}
+            </div>
+          )}
+          
           {/* User Profile */}
           <UserProfile />
         </div>
