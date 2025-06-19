@@ -64,7 +64,7 @@ export const CompactBriefingChat: React.FC<CompactBriefingChatProps> = ({
             <div className="space-y-3">
               {chatMessages.map((message) => (
                 <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-xs px-3 py-2 rounded-lg text-sm ${
+                  <div className={`max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg px-3 py-2 rounded-lg text-sm ${
                     message.type === 'user' 
                       ? 'bg-blue-500 text-white' 
                       : 'bg-gray-100 text-gray-900'

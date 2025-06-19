@@ -624,58 +624,60 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-200px)] overflow-hidden">
             {/* Generated Briefing Display */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 overflow-hidden flex flex-col">
+              {/* Header always visible */}
+              <div className="flex items-center justify-between mb-4 flex-shrink-0">
+                <div className="flex items-center space-x-3">
+                  <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
+                    <FileText className="w-3 h-3 text-white" />
+                  </div>
+                  <h2 className="text-lg font-semibold text-gray-900">Generated Briefing</h2>
+                </div>
+
+                {generatedBriefing && (
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant={isMarkdownView ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setIsMarkdownView(!isMarkdownView)}
+                      className="flex items-center space-x-1"
+                    >
+                      <FileText className="w-4 h-4" />
+                      <span>Markdown</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleDownloadBriefing}
+                      className="flex items-center space-x-1"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>Download</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsBriefingModalOpen(true)}
+                      className="flex items-center space-x-1"
+                    >
+                      <Eye className="w-4 h-4" />
+                      <span>Full View</span>
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              {/* Content */}
               {generatedBriefing ? (
-                <>
-                  <div className="flex items-center justify-between mb-4 flex-shrink-0">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
-                        <FileText className="w-3 h-3 text-white" />
-                      </div>
-                      <div>
-                        <h2 className="text-lg font-semibold text-gray-900">Generated Briefing</h2>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant={isMarkdownView ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setIsMarkdownView(!isMarkdownView)}
-                        className="flex items-center space-x-1"
-                      >
-                        <FileText className="w-4 h-4" />
-                        <span>Markdown</span>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleDownloadBriefing}
-                        className="flex items-center space-x-1"
-                      >
-                        <Download className="w-4 h-4" />
-                        <span>Download</span>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setIsBriefingModalOpen(true)}
-                        className="flex items-center space-x-1"
-                      >
-                        <Eye className="w-4 h-4" />
-                        <span>Full View</span>
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="flex-1 overflow-y-auto">
-                    <BriefingDisplay briefing={generatedBriefing} markdownView={isMarkdownView} />
-                  </div>
-                </>
+                <div className="flex-1 overflow-y-auto">
+                  <BriefingDisplay briefing={generatedBriefing} markdownView={isMarkdownView} />
+                </div>
               ) : (
                 <div className="flex-1 bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center">
                   <div className="text-center p-8">
                     <div className="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-xl flex items-center justify-center mx-auto mb-4">
                       <FileText className="w-8 h-8 text-gray-400" />
                     </div>
-                    <h2 className="text-lg font-semibold text-gray-900 mb-2">No briefing generated yet</h2>
+                    <p className="text-gray-600">No briefing generated yet</p>
                     <p className="text-gray-600">Upload files and use the assistant below to generate your first briefing.</p>
                   </div>
                 </div>
