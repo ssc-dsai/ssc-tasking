@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sidebar } from '../components/layout/Sidebar';
 import TopHeader from '../components/layout/TopHeader';
@@ -17,6 +17,11 @@ import { useTaskingDetails } from '@/hooks/useTaskingDetails';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useToast } from '@/hooks/use-toast';
 import { getChatCompletion } from '../lib/openai';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
+import { useChatMessages } from '@/hooks/useChatMessages';
+import { useQueryClient } from '@tanstack/react-query';
+import { DEV } from '@/lib/log';
 
 interface TaskingFile {
   id: string;
@@ -200,7 +205,12 @@ const TaskingView: React.FC = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isTaskingModalOpen, setIsTaskingModalOpen] = useState(false);
+  const [isBriefingModalOpen, setIsBriefingModalOpen] = useState(false);
   const [isMarkdownView, setIsMarkdownView] = useState(false);
+  
+  // Chat assistant UI state
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
   
   // Any taskingId other than '1' (our demo) will be treated as real
   const isRealTasking = taskingId !== '1';
@@ -269,26 +279,54 @@ const TaskingView: React.FC = () => {
     projectId: '1'
   } : null);
 
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(
-    taskingId === '1' ? [
-      {
-        id: '1',
-        type: 'user',
-        content: 'Analyze the financial performance and provide key insights for executive decision-making',
-        timestamp: '2024-01-15 14:30'
-      },
-      {
-        id: '2',
-        type: 'ai',
-        content: 'I\'ve analyzed your Q4 financial documents and generated a comprehensive executive summary focusing on performance metrics, risks, and strategic recommendations.',
-        timestamp: '2024-01-15 14:32'
-      }
-    ] : []
-  );
-
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [isBriefingModalOpen, setIsBriefingModalOpen] = useState(false);
   const { toast } = useToast();
+  const { user, session } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Fetch existing chat history
+  const { data: history = [], isLoading: loadingHistory } = useChatMessages(taskingId || '');
+
+  // helper to persist message
+  const persistChat = async (sender: 'user' | 'assistant' | 'system', content: string) => {
+    if (!isRealTasking) return;
+
+    try {
+      DEV && console.log('[chat] save');
+      const accessToken = session?.access_token;
+
+      DEV && console.log('[chat] token acquired?', !!accessToken);
+       
+      if (!accessToken) throw new Error('No access token from session');
+
+      DEV && console.log('[chat] calling save-chat-message edge function');
+
+      const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/save-chat-message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ tasking_id: taskingId, sender, content }),
+      });
+
+      DEV && console.log('[chat] resp', resp.status);
+      if (!resp.ok) {
+        const errText = await resp.text();
+        console.error('[chat] edge function error:', errText);
+        toast({ title: 'Chat save failed', description: errText, variant: 'destructive' });
+        throw new Error(errText);
+      }
+
+      DEV && console.log('[chat] body ok');
+      // Note: we already invalidated query below
+
+      // Refresh queries
+      queryClient.invalidateQueries({ queryKey: ['chat-messages', taskingId, user?.id] });
+    } catch (err: any) {
+      console.error('[chat] unexpected error:', err);
+      throw err;
+    }
+  };
 
   // Real file upload functionality for real taskings
   const { uploadFile, isUploading, uploadProgress, error: uploadError } = useFileUpload(taskingId || '', {
@@ -325,6 +363,7 @@ const TaskingView: React.FC = () => {
   };
 
   const handleGenerateBriefing = async (prompt: string) => {
+    DEV && console.log('[assist] generate');
     setIsGenerating(true);
 
     const userMessage: ChatMessage = {
@@ -334,14 +373,22 @@ const TaskingView: React.FC = () => {
       timestamp: new Date().toLocaleString()
     };
     setChatMessages(prev => [...prev, userMessage]);
+    try {
+      await persistChat('user', prompt);
+      DEV && console.log('[assist] user saved');
+    } catch (e) {
+      console.error('[assist] failed to save user message:', e);
+    }
 
     try {
       const systemPrompt = 'You are an AI assistant that reviews the uploaded documents for this tasking and produces concise executive briefings.';
 
+      DEV && console.log('[assist] openai');
       const aiContent = await getChatCompletion([
         { role: 'system', content: systemPrompt },
         { role: 'user', content: prompt }
       ]);
+      DEV && console.log('[assist] ai len', aiContent.length);
 
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -350,6 +397,12 @@ const TaskingView: React.FC = () => {
         timestamp: new Date().toLocaleString()
       };
       setChatMessages(prev => [...prev, aiMessage]);
+      try {
+        await persistChat('assistant', aiContent);
+        DEV && console.log('[assist] ai saved');
+      } catch (e) {
+        console.error('[assist] failed to save AI response:', e);
+      }
     } catch (err: any) {
       console.error('OpenAI error', err);
       toast({ title: 'AI Error', description: err.message, variant: 'destructive' });
@@ -444,6 +497,50 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
     console.log('New tasking created:', tasking);
     setIsTaskingModalOpen(false);
   };
+
+  // Sync server history into local state once loaded
+  useEffect(() => {
+    if (!isRealTasking || loadingHistory) return;
+
+    const transformed: ChatMessage[] = history.map(r => ({
+      id: r.id,
+      type: r.sender === 'user' ? 'user' : 'ai',
+      content: r.content,
+      timestamp: new Date(r.created_at).toLocaleString(),
+    }));
+
+    console.log('[ChatSync] Server returned', transformed.length, 'messages');
+
+    setChatMessages(prev => {
+      // Merge without duplication
+      const existingIds = new Set(prev.map(m => m.id));
+      const merged = [...prev];
+      transformed.forEach(m => {
+        if (!existingIds.has(m.id)) merged.push(m);
+      });
+      // Sort chronologically (created_at asc)
+      merged.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+      return merged;
+    });
+  }, [loadingHistory, history, isRealTasking]);
+
+  // Prefill chat with messages returned by get-tasking-details
+  useEffect(() => {
+    if (
+      isRealTasking &&
+      (realTaskingData?.data as any)?.chat_messages &&
+      (realTaskingData.data as any).chat_messages.length
+    ) {
+      const initial: ChatMessage[] = (realTaskingData.data as any).chat_messages.map((m: any) => ({
+        id: m.id,
+        type: m.sender === 'user' ? 'user' : 'ai',
+        content: m.content,
+        timestamp: new Date(m.created_at).toLocaleString(),
+      }));
+      setChatMessages(initial);
+      DEV && console.log('[chat] prefilled', initial.length);
+    }
+  }, [isRealTasking, realTaskingData]);
 
   // Loading / error handling for real taskings
   if (isRealTasking) {

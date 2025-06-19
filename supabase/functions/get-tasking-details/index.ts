@@ -93,6 +93,12 @@ serve(async (req: Request) => {
           content,
           created_at,
           updated_at
+        ),
+        chat_messages!inner (
+          id,
+          sender,
+          content,
+          created_at
         )
       `)
       .eq('id', taskingId)

@@ -1,3 +1,5 @@
+import { DEV } from '@/lib/log';
+
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
@@ -10,6 +12,11 @@ if (!OPENAI_API_KEY) {
 }
 
 export async function getChatCompletion(messages: ChatMessage[]): Promise<string> {
+  const startTime = Date.now();
+  if (DEV) {
+    console.log('[openai] req', messages.length, 'msgs');
+  }
+
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -24,12 +31,18 @@ export async function getChatCompletion(messages: ChatMessage[]): Promise<string
     })
   });
 
+  const elapsed = Date.now() - startTime;
+  DEV && console.log(`[openai] ${response.status} in ${elapsed}ms`);
+
   if (!response.ok) {
     const err = await response.text();
+    DEV && console.error('[openai] error', err);
     throw new Error(`OpenAI error ${response.status}: ${err}`);
   }
 
   const data = await response.json();
+  DEV && console.log('[openai] ok');
+
   const aiMessage: string = data.choices[0].message.content;
   return aiMessage;
 } 

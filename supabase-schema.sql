@@ -265,4 +265,38 @@ CREATE POLICY "Users can delete files in their own folder" ON storage.objects
     FOR DELETE USING (
         bucket_id = 'documents' 
         AND auth.uid()::text = (storage.foldername(name))[1]
+    );
+
+-- Chat messages table for assistant history
+CREATE TABLE IF NOT EXISTS public.chat_messages (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    tasking_id UUID REFERENCES public.taskings(id) ON DELETE CASCADE NOT NULL,
+    sender TEXT CHECK (sender IN ('user','assistant','system')) NOT NULL,
+    content TEXT NOT NULL,
+    tokens INTEGER,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_chat_tasking_id ON public.chat_messages(tasking_id);
+CREATE INDEX IF NOT EXISTS idx_chat_created_at ON public.chat_messages(created_at DESC);
+
+-- Enable RLS and policies
+ALTER TABLE public.chat_messages ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own chat" ON public.chat_messages
+    FOR SELECT USING (
+        EXISTS (
+            SELECT 1 FROM public.taskings
+            WHERE taskings.id = chat_messages.tasking_id
+            AND taskings.user_id = auth.uid()
+        )
+    );
+
+CREATE POLICY "Users can insert own chat" ON public.chat_messages
+    FOR INSERT WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.taskings
+            WHERE taskings.id = chat_messages.tasking_id
+            AND taskings.user_id = auth.uid()
+        )
     ); 

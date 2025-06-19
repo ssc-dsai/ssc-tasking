@@ -12,18 +12,14 @@ import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import { supabase } from './lib/supabase';
+import { DEV } from '@/lib/log';
 
 function SupabaseTest() {
   useEffect(() => {
-    console.log('Calling supabase.auth.getUser()...');
+    if (!DEV) return;
     supabase.auth.getUser().then((result) => {
-      console.log('Supabase getUser result:', result);
-    }).catch((err) => {
-      console.error('Supabase getUser error:', err);
-    }).finally(() => {
-      console.log('Finished supabase.auth.getUser() call');
+      console.log('[auth] getUser', result);
     });
-    console.log('After calling supabase.auth.getUser() (promise returned)');
   }, []);
   return null;
 }
@@ -69,7 +65,7 @@ const App = () => {
 
   return (
     <>
-      <SupabaseTest />
+      {DEV && <SupabaseTest />}
       <TooltipProvider>
         <Toaster />
         <Sonner />
