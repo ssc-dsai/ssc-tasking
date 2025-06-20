@@ -59,7 +59,9 @@ export const BriefingGenerationModal: React.FC<BriefingGenerationModalProps> = (
         console.log('✅ [Briefing Generation] Found', searchResult.results.length, 'relevant chunks');
         
         // Enhanced prompt for briefing generation
-        const briefingPrompt = `Generate a comprehensive briefing document in markdown format with the following structure:
+        const briefingPrompt = `You must respond with ONLY clean markdown content. Do not include any conversational text, explanations, or introductions. Start directly with the markdown content.
+
+Generate a comprehensive briefing document in markdown format with the following structure:
 
 # ${title}
 
@@ -86,7 +88,7 @@ export const BriefingGenerationModal: React.FC<BriefingGenerationModalProps> = (
 
 User Request: ${prompt}
 
-Please create a professional, well-structured briefing document based on the uploaded content. Use proper markdown formatting with headers, bullet points, and emphasis where appropriate.`;
+IMPORTANT: Return ONLY the markdown content starting with the # header. Do not include any conversational text like "Sure thing!" or "Here's a briefing..." - just return the pure markdown document.`;
 
         briefingContent = await getChatCompletionWithContext(
           [{ role: 'user', content: briefingPrompt }],
@@ -97,9 +99,9 @@ Please create a professional, well-structured briefing document based on the upl
         briefingContent = await getChatCompletion([
           { 
             role: 'system', 
-            content: 'You are an AI assistant for document analysis. The user has uploaded files but no relevant content was found for their briefing request. Let them know and suggest they refine their request or check their uploaded files.' 
+            content: 'You must respond with ONLY clean markdown content. No conversational text or explanations. Start directly with a markdown briefing document. The user has uploaded files but no relevant content was found for their request - create a brief markdown document explaining this limitation.' 
           },
-          { role: 'user', content: `Generate a briefing titled "${title}" with the following requirements: ${prompt}` }
+          { role: 'user', content: `Generate a briefing titled "${title}" with the following requirements: ${prompt}. Return ONLY markdown starting with # ${title}` }
         ]);
       }
 

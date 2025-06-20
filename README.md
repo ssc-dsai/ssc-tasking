@@ -1,4 +1,4 @@
-# AI-Powered Briefing & Document Analysis Platform
+# SSC Tasking - AI-Powered Briefing & Document Analysis Platform
 
 A modern web application that transforms document analysis and briefing generation using AI. Upload documents, chat with an AI assistant, and automatically generate executive briefings from your content.
 

@@ -966,12 +966,6 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                       </SelectContent>
                     </Select>
                   )}
-                  
-                  {savedBriefings.length === 1 && (
-                    <span className="text-sm text-gray-600 italic">
-                      "{savedBriefings[0].title}"
-                    </span>
-                  )}
                 </div>
 
                 <div className="flex items-center space-x-2">
