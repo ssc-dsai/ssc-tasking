@@ -35,7 +35,7 @@ export const BriefingChat: React.FC<BriefingChatProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 h-full flex flex-col">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 h-full flex flex-col">
       <div className="flex items-center space-x-3 mb-4">
         <MessageSquare className="w-5 h-5 text-primary" />
         <h2 className="text-lg font-semibold text-gray-900">Briefing Assistant</h2>

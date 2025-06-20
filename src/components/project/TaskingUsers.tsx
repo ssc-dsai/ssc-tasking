@@ -19,27 +19,24 @@ interface TaskingUsersProps {
 const mockUsers: TaskingUser[] = [
   {
     id: '1',
-    name: 'John Smith',
-    email: 'john.smith@company.com',
-    role: 'owner'
+    name: 'Mohib Rab',
+    email: 'mohib.rab@company.com',
+    role: 'owner',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=32&h=32&fit=crop&crop=face&auto=format'
   },
   {
     id: '2',
-    name: 'Sarah Wilson',
-    email: 'sarah.wilson@company.com',
-    role: 'editor'
-  },
-  {
-    id: '3',
-    name: 'Mike Johnson',
-    email: 'mike.johnson@company.com',
-    role: 'viewer'
+    name: 'Emily Johnson',
+    email: 'emily.johnson@company.com',
+    role: 'editor',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=32&h=32&fit=crop&crop=face&auto=format'
   }
 ];
 
 export const TaskingUsers: React.FC<TaskingUsersProps> = ({ taskingId, isRealTasking = false }) => {
   // For real taskings, start with empty users list; for mock, use mock data
-  const [users, setUsers] = useState<TaskingUser[]>(isRealTasking ? [] : mockUsers);
+  // Temporarily showing mock users even for real taskings for UI demonstration
+  const [users, setUsers] = useState<TaskingUser[]>(mockUsers);
   const [newUserEmail, setNewUserEmail] = useState('');
   const [isAdding, setIsAdding] = useState(false);
 
@@ -75,18 +72,8 @@ export const TaskingUsers: React.FC<TaskingUsersProps> = ({ taskingId, isRealTas
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-medium text-gray-700">
-          Tasking Users ({users.length})
+          Users ({users.length})
         </h3>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setIsAdding(true)}
-          disabled={isRealTasking}
-          className="flex items-center space-x-1"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add User</span>
-        </Button>
       </div>
 
       {isAdding && (
@@ -121,11 +108,19 @@ export const TaskingUsers: React.FC<TaskingUsersProps> = ({ taskingId, isRealTas
             className={`flex items-center justify-between p-3 rounded-lg border border-gray-200 ${user.role === 'owner' ? 'bg-blue-50' : 'bg-gray-50'}`}
           >
             <div className="flex items-center space-x-3 flex-1 min-w-0">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-white text-sm font-medium">
-                  {user.name.charAt(0).toUpperCase()}
-                </span>
-              </div>
+              {user.avatar ? (
+                <img 
+                  src={user.avatar} 
+                  alt={user.name}
+                  className="w-8 h-8 rounded-full flex-shrink-0 object-cover"
+                />
+              ) : (
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-white text-sm font-medium">
+                    {user.name.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              )}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 truncate">
                   {user.name}
@@ -134,9 +129,11 @@ export const TaskingUsers: React.FC<TaskingUsersProps> = ({ taskingId, isRealTas
                   {user.email}
                 </p>
               </div>
-              <span className={`px-2 py-1 text-xs font-medium rounded-full ${getRoleColor(user.role)}`}>
-                {user.role}
-              </span>
+              {user.role !== 'editor' && (
+                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getRoleColor(user.role)}`}>
+                  {user.role}
+                </span>
+              )}
             </div>
             {user.role !== 'owner' && (
               <Button

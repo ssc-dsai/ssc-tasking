@@ -564,7 +564,7 @@ const TaskingView: React.FC = () => {
           aiContent = await getChatCompletion([
             { 
               role: 'system', 
-              content: 'You are an AI assistant for document analysis. The user has uploaded files but no relevant content was found for their query. Let them know and ask for clarification.' 
+              content: 'You are a friendly AI assistant. The user has uploaded files but you couldn\'t find relevant content for their question. Let them know in a casual, helpful way and suggest they try rephrasing their question or ask about something else in their documents.' 
             },
             { role: 'user', content: prompt }
           ]);
@@ -572,8 +572,9 @@ const TaskingView: React.FC = () => {
       } else {
         // Fallback to basic completion for mock data or no files
         const systemPrompt = isRealTasking 
-          ? 'You are an AI assistant that reviews uploaded documents. The user has not uploaded any files yet. Please let them know they need to upload PDF or TXT files before you can analyze them.'
-          : 'You are an AI assistant that reviews the uploaded documents for this tasking and produces concise executive briefings.';
+          ? 'You are an AI assistant helping with workplace tasks. Be friendly and natural, like a colleague explaining something quickly. Use casual yet clear language, and avoid sounding like a formal report.'
+          : 'You are a helpful assistant summarizing content like a human teammate would. Keep things easy to follow, friendly, and use everyday language instead of corporate jargon.';
+
 
         DEV && console.log('[assist] using basic completion');
         aiContent = await getChatCompletion([
@@ -906,7 +907,7 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
           title={currentTasking.name}
         />
         
-        <div className="flex-1 p-6 lg:p-8 overflow-hidden">
+        <div className="flex-1 p-4 overflow-hidden">
           {/* Breadcrumbs */}
           <div className="mb-4">
             <Breadcrumb>
@@ -932,15 +933,15 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-200px)] overflow-hidden">
-            {/* Generated Briefing Display */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 overflow-hidden flex flex-col">
+            {/* Briefings Display */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 overflow-hidden flex flex-col">
               {/* Header always visible */}
               <div className="flex items-center justify-between mb-4 flex-shrink-0">
                 <div className="flex items-center space-x-3">
                   <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
                     <FileText className="w-3 h-3 text-white" />
                   </div>
-                  <h2 className="text-lg font-semibold text-gray-900">Generated Briefing</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">Briefings</h2>
                   
                   {/* Briefing Selector */}
                   {savedBriefings.length > 1 && (
@@ -985,68 +986,163 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                     <span>Generate</span>
                   </Button>
 
-                  {(generatedBriefing || markdownBriefing || savedBriefings.length > 0) && (
-                    <div className="flex items-center space-x-1">
-                      {/* Markdown View Toggle */}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setIsMarkdownView(!isMarkdownView)}
-                        title={isMarkdownView ? 'Switch to Card View' : 'Switch to Markdown View'}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      
-                      {/* Download Button */}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleDownloadBriefing}
-                        title="Download Briefing"
-                        className="h-8 w-8 p-0"
-                      >
-                        <Download className="w-4 h-4" />
-                      </Button>
-                      
-                      {/* Full View Button */}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setIsBriefingModalOpen(true)}
-                        title="Open Full View"
-                        className="h-8 w-8 p-0"
-                      >
-                        <Expand className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  )}
+
                 </div>
               </div>
 
               {/* Content */}
               {savedBriefings[selectedBriefingIndex] ? (
-                <div className="flex-1 overflow-y-auto">
-                  <MarkdownBriefingDisplay 
-                    briefing={{
-                      title: savedBriefings[selectedBriefingIndex].title,
-                      content: savedBriefings[selectedBriefingIndex].content,
-                      createdAt: savedBriefings[selectedBriefingIndex].created_at
-                    }}
-                    markdownView={isMarkdownView}
-                  />
+                <div className="flex-1 overflow-hidden">
+                  {/* Briefing Content Box */}
+                  <div className="h-full border border-gray-200 rounded-lg bg-gray-50">
+                    {/* Briefing Box Header */}
+                    <div className="flex items-center justify-end px-4 py-3 bg-white rounded-t-lg">
+                      <div className="flex items-center space-x-1">
+                        {/* Markdown View Toggle */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsMarkdownView(!isMarkdownView)}
+                          title={isMarkdownView ? 'Switch to Card View' : 'Switch to Markdown View'}
+                          className="h-7 w-7 p-0"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </Button>
+                        
+                        {/* Download Button */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleDownloadBriefing}
+                          title="Download Briefing"
+                          className="h-7 w-7 p-0"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                        </Button>
+                        
+                        {/* Full View Button */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsBriefingModalOpen(true)}
+                          title="Open Full View"
+                          className="h-7 w-7 p-0"
+                        >
+                          <Expand className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                    {/* Briefing Content */}
+                    <div className="p-2 h-[calc(100%-60px)] overflow-y-auto bg-white rounded-b-lg">
+                      <MarkdownBriefingDisplay 
+                        briefing={{
+                          title: savedBriefings[selectedBriefingIndex].title,
+                          content: savedBriefings[selectedBriefingIndex].content,
+                          createdAt: savedBriefings[selectedBriefingIndex].created_at
+                        }}
+                        markdownView={isMarkdownView}
+                        hideTitle={true}
+                      />
+                    </div>
+                  </div>
                 </div>
               ) : markdownBriefing ? (
-                <div className="flex-1 overflow-y-auto">
-                  <MarkdownBriefingDisplay briefing={markdownBriefing} />
+                <div className="flex-1 overflow-hidden">
+                  {/* Briefing Content Box */}
+                  <div className="h-full border border-gray-200 rounded-lg bg-gray-50">
+                    {/* Briefing Box Header */}
+                    <div className="flex items-center justify-end px-4 py-3 bg-white rounded-t-lg">
+                      <div className="flex items-center space-x-1">
+                        {/* Markdown View Toggle */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsMarkdownView(!isMarkdownView)}
+                          title={isMarkdownView ? 'Switch to Card View' : 'Switch to Markdown View'}
+                          className="h-7 w-7 p-0"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </Button>
+                        
+                        {/* Download Button */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleDownloadBriefing}
+                          title="Download Briefing"
+                          className="h-7 w-7 p-0"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                        </Button>
+                        
+                        {/* Full View Button */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsBriefingModalOpen(true)}
+                          title="Open Full View"
+                          className="h-7 w-7 p-0"
+                        >
+                          <Expand className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                    {/* Briefing Content */}
+                    <div className="p-2 h-[calc(100%-60px)] overflow-y-auto bg-white rounded-b-lg">
+                      <MarkdownBriefingDisplay briefing={markdownBriefing} hideTitle={true} />
+                    </div>
+                  </div>
                 </div>
               ) : generatedBriefing ? (
-                <div className="flex-1 overflow-y-auto">
-                  <BriefingDisplay briefing={generatedBriefing} markdownView={isMarkdownView} />
+                <div className="flex-1 overflow-hidden">
+                  {/* Briefing Content Box */}
+                  <div className="h-full border border-gray-200 rounded-lg bg-gray-50">
+                    {/* Briefing Box Header */}
+                    <div className="flex items-center justify-end px-4 py-3 bg-white rounded-t-lg">
+                      <div className="flex items-center space-x-1">
+                        {/* Markdown View Toggle */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsMarkdownView(!isMarkdownView)}
+                          title={isMarkdownView ? 'Switch to Card View' : 'Switch to Markdown View'}
+                          className="h-7 w-7 p-0"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </Button>
+                        
+                        {/* Download Button */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleDownloadBriefing}
+                          title="Download Briefing"
+                          className="h-7 w-7 p-0"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                        </Button>
+                        
+                        {/* Full View Button */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsBriefingModalOpen(true)}
+                          title="Open Full View"
+                          className="h-7 w-7 p-0"
+                        >
+                          <Expand className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                    {/* Briefing Content */}
+                    <div className="p-2 h-[calc(100%-60px)] overflow-y-auto bg-white rounded-b-lg">
+                      <BriefingDisplay briefing={generatedBriefing} markdownView={isMarkdownView} hideTitle={true} />
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <div className="flex-1 bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center">
-                  <div className="text-center p-8">
+                  <div className="text-center p-4">
                     <div className="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-xl flex items-center justify-center mx-auto mb-4">
                       <FileText className="w-8 h-8 text-gray-400" />
                     </div>
@@ -1073,7 +1169,7 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
              </div>
 
             {/* Chat History and Assistant */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col overflow-hidden">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col overflow-hidden">
               <CompactBriefingChat
                 onGenerate={handleGenerateBriefing}
                 isGenerating={isGenerating || isSearching}
@@ -1082,14 +1178,14 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
               />
             </div>
 
-            {/* Tasking Files - Minimum 30% height */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col overflow-hidden min-h-[30vh]">
+            {/* Files - Minimum 30% height */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col overflow-hidden min-h-[30vh]">
               <div className="flex items-center justify-between mb-4 flex-shrink-0">
                 <div className="flex items-center space-x-3">
                   <div className="w-6 h-6 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
                     <Upload className="w-3 h-3 text-white" />
                   </div>
-                  <h2 className="text-lg font-semibold text-gray-900">Tasking Files</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">Files</h2>
                   <div className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
                     {files.length} files
                   </div>
@@ -1129,7 +1225,7 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
               <div className="flex-1 overflow-hidden">
                 {files.length === 0 ? (
                   <div className="flex-1 bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center h-full">
-                    <div className="text-center p-8">
+                    <div className="text-center p-4">
                       <div className="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-xl flex items-center justify-center mx-auto mb-4">
                         <Upload className="w-8 h-8 text-gray-400" />
                       </div>
@@ -1143,16 +1239,27 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
               </div>
             </div>
 
-            {/* Tasking Users - Minimum 30% height */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col overflow-hidden min-h-[30vh]">
-              <div className="flex items-center space-x-3 mb-4 flex-shrink-0">
-                <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-                  <Users className="w-3 h-3 text-white" />
+            {/* Users - Minimum 30% height */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col overflow-hidden min-h-[30vh]">
+              <div className="flex items-center justify-between mb-4 flex-shrink-0">
+                <div className="flex items-center space-x-3">
+                  <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                    <Users className="w-3 h-3 text-white" />
+                  </div>
+                  <h2 className="text-lg font-semibold text-gray-900">Users</h2>
                 </div>
-                <h2 className="text-lg font-semibold text-gray-900">
-                  Tasking Users {isRealTasking && <span className="text-sm font-normal text-gray-500">(Real Data)</span>}
-                  {!isRealTasking && <span className="text-sm font-normal text-gray-500">(Mock Data)</span>}
-                </h2>
+
+                <div className="flex items-center space-x-2">
+                  {/* Add User Button */}
+                  <Button
+                    disabled={isRealTasking}
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 flex items-center space-x-1"
+                    size="sm"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Add User</span>
+                  </Button>
+                </div>
               </div>
               
               <div className="flex-1 overflow-hidden">

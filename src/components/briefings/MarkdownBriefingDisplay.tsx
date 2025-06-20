@@ -19,25 +19,19 @@ export const MarkdownBriefingDisplay: React.FC<MarkdownBriefingDisplayProps> = (
 }) => {
   // Parse markdown content into structured sections
   const parseContentIntoSections = (content: string) => {
-    const sections: Array<{title: string, content: string, type: string}> = [];
+    const sections: Array<{title: string, content: string, type: string, level: number}> = [];
     
-    // Split content by headers
-    const parts = content.split(/^##?\s+(.+)$/gm);
+    // Split content by headers, capturing the header level
+    const parts = content.split(/^(#{1,2})\s+(.+)$/gm);
     
-    // First part is usually intro/summary before first header - skip if it's just the title
-    if (parts[0] && parts[0].trim() && !parts[0].trim().toLowerCase().includes('lets create summary')) {
-      sections.push({
-        title: 'Executive Summary',
-        content: parts[0].trim(),
-        type: 'summary'
-      });
-    }
+    // Skip any intro/conversational text before first header
     
-    // Process header-content pairs
-    for (let i = 1; i < parts.length; i += 2) {
-      if (parts[i] && parts[i + 1]) {
-        const title = parts[i].trim();
-        const content = parts[i + 1].trim();
+    // Process header-content triplets (headerLevel, headerTitle, content)
+    for (let i = 1; i < parts.length; i += 3) {
+      if (parts[i] && parts[i + 1] && parts[i + 2]) {
+        const headerLevel = parts[i].length; // # = 1, ## = 2
+        const title = parts[i + 1].trim();
+        const content = parts[i + 2].trim();
         
         // Determine section type based on title
         let type = 'default';
@@ -47,7 +41,7 @@ export const MarkdownBriefingDisplay: React.FC<MarkdownBriefingDisplayProps> = (
         else if (title.toLowerCase().includes('recommendation') || title.toLowerCase().includes('action')) type = 'recommendations';
         else if (title.toLowerCase().includes('next') || title.toLowerCase().includes('step')) type = 'nextsteps';
         
-        sections.push({ title, content, type });
+        sections.push({ title, content, type, level: headerLevel });
       }
     }
     
@@ -60,9 +54,9 @@ export const MarkdownBriefingDisplay: React.FC<MarkdownBriefingDisplayProps> = (
     
     return cleaned
       // Headers (H1-H6) with proper markdown styling
-      .replace(/^### (.+)$/gm, '<h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 border-b border-gray-100 pb-1">$1</h3>')
-      .replace(/^## (.+)$/gm, '<h2 class="text-xl font-bold text-gray-900 mt-8 mb-4 border-b-2 border-gray-200 pb-2">$1</h2>')
-      .replace(/^# (.+)$/gm, '<h1 class="text-2xl font-bold text-gray-900 mt-8 mb-6 border-b-2 border-gray-300 pb-3">$1</h1>')
+      .replace(/^### (.+)$/gm, '<h3 class="text-lg font-semibold text-gray-900 mt-4 mb-3 border-b border-gray-100 pb-1">$1</h3>')
+      .replace(/^## (.+)$/gm, '<h2 class="text-xl font-bold text-gray-900 mt-2 mb-4 border-b-2 border-gray-200 pb-2">$1</h2>')
+      .replace(/^# (.+)$/gm, '<h1 class="text-2xl font-bold text-gray-900 mt-2 mb-6 border-b-2 border-gray-300 pb-3">$1</h1>')
       
       // Code blocks (triple backticks)
       .replace(/```(\w+)?\n([\s\S]*?)```/g, '<div class="bg-gray-50 border border-gray-200 rounded-md p-4 my-4 font-mono text-sm overflow-x-auto"><code class="text-gray-800">$2</code></div>')
@@ -178,12 +172,21 @@ export const MarkdownBriefingDisplay: React.FC<MarkdownBriefingDisplayProps> = (
       {sections.map((section, index) => {
         const formattedContent = parseMarkdown(section.content);
 
+        // Determine if this is the first section to remove top margin
+        const isFirst = index === 0;
+        
         return (
-          <div key={index} className="mb-8">
-            {/* Section Header - markdown style */}
-            <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4 border-b-2 border-gray-200 pb-2">
-              {section.title}
-            </h2>
+          <div key={index} className="mb-4">
+            {/* Section Header - different styling for H1 vs H2 */}
+            {section.level === 1 ? (
+              <h1 className={`text-2xl font-bold text-gray-900 ${isFirst ? 'mt-0' : 'mt-6'} mb-6 border-b-4 border-gray-300 pb-3`}>
+                {section.title}
+              </h1>
+            ) : (
+              <h2 className={`text-xl font-bold text-gray-900 ${isFirst ? 'mt-0' : 'mt-4'} mb-4 border-b-2 border-gray-200 pb-2`}>
+                {section.title}
+              </h2>
+            )}
             
             {/* Section Content - rendered HTML */}
             <div 

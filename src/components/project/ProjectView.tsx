@@ -234,7 +234,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project }) => {
 
       <div className="grid grid-cols-2 grid-rows-2 gap-6 h-[calc(100vh-220px)]">
         {/* Generated Briefing */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col h-full w-full overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col h-full w-full overflow-hidden">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2">
               <div className="w-6 h-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
@@ -270,7 +270,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project }) => {
         </div>
 
         {/* Project Files */}
-        <div className="row-span-1 col-span-1 bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col h-full overflow-hidden">
+        <div className="row-span-1 col-span-1 bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col h-full overflow-hidden">
           <div className="flex items-center space-x-3 mb-4">
             <div className="w-6 h-6 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
               <Upload className="w-3 h-3 text-white" />
@@ -289,7 +289,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project }) => {
         </div>
 
         {/* Chat History */}
-        <div className="row-span-1 col-span-1 bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col h-full overflow-hidden">
+        <div className="row-span-1 col-span-1 bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col h-full overflow-hidden">
           <CompactBriefingChat
             onGenerate={handleGenerateBriefing}
             isGenerating={isGenerating}
@@ -299,7 +299,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project }) => {
         </div>
 
         {/* Tasking Users */}
-        <div className="row-span-1 col-span-1 bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col h-full overflow-hidden">
+        <div className="row-span-1 col-span-1 bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col h-full overflow-hidden">
           {/* Replace 'project.id' with the correct taskingId if needed */}
           <TaskingUsers taskingId={project.id} />
         </div>

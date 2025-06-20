@@ -84,7 +84,7 @@ export const Dashboard: React.FC = () => {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
-        <div className="flex-1 p-6 lg:p-8">
+        <div className="flex-1 p-4">
           {selectedTasking ? (
             <ProjectView project={selectedTasking} />
           ) : (
