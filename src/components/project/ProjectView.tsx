@@ -157,40 +157,11 @@ const getFilesForProject = (projectId: string): ProjectFile[] => {
   }
 };
 
-const mockBriefingNote = {
-  id: '1',
-  title: 'Q4 Financial Performance Executive Summary',
-  summary: 'The Q4 financial analysis reveals strong performance in core business units with revenue exceeding targets by 12%. However, operational costs have increased by 8% compared to Q3, primarily driven by expanded marketing initiatives and technology infrastructure investments.',
-  keyPoints: [
-    'Revenue growth of 12% above target, driven by strong performance in enterprise sales',
-    'Operating expenses increased 8% due to strategic technology investments',
-    'Cash flow remains strong with 15% improvement over previous quarter',
-    'Customer acquisition costs decreased by 5% while retention improved to 94%'
-  ],
-  risks: [
-    'Market volatility could impact Q1 projections',
-    'Increased competition in core market segments',
-    'Supply chain disruptions affecting product delivery timelines'
-  ],
-  recommendations: [
-    'Implement cost optimization program targeting non-essential operational expenses',
-    'Accelerate digital transformation initiatives to improve operational efficiency',
-    'Diversify revenue streams to reduce dependency on enterprise segment',
-    'Strengthen supplier relationships to mitigate supply chain risks'
-  ],
-  nextSteps: [
-    'Schedule executive review meeting for budget reallocation decisions',
-    'Initiate cost reduction taskforce with department heads',
-    'Develop contingency plans for Q1 market scenarios',
-    'Update quarterly forecasts based on current trends'
-  ],
-  createdAt: '2024-01-15',
-  projectId: '1'
-};
+
 
 export const ProjectView: React.FC<ProjectViewProps> = ({ project }) => {
   const [files, setFiles] = useState<ProjectFile[]>(getFilesForProject(project.id));
-  const [generatedBriefing, setGeneratedBriefing] = useState(project.id === '1' ? mockBriefingNote : null);
+  const [generatedBriefing, setGeneratedBriefing] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isBriefingModalOpen, setIsBriefingModalOpen] = useState(false);
 
@@ -213,7 +184,8 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project }) => {
     setIsGenerating(true);
     // Simulate AI processing
     await new Promise(resolve => setTimeout(resolve, 3000));
-    setGeneratedBriefing(mockBriefingNote);
+    // TODO: Replace with actual briefing generation
+    setGeneratedBriefing(null);
     setIsGenerating(false);
   };
 

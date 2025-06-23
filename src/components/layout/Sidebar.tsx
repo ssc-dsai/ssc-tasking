@@ -9,9 +9,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { mockTaskings, Tasking } from '@/data/mockData';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+
+interface Tasking {
+  id: string;
+  name: string;
+  description: string;
+  category: 'personal' | 'shared';
+  fileCount: number;
+  status: string;
+  createdAt: string;
+  lastUpdated: string;
+  users: any[];
+}
 
 interface SidebarProps {
   activeTasking: string | null;
@@ -19,6 +30,8 @@ interface SidebarProps {
   onNewTasking: () => void;
   isCollapsed: boolean;
   onToggle: () => void;
+  taskings: Tasking[];
+  isLoading?: boolean;
 }
 
 // Utility to format time ago
@@ -39,14 +52,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onTaskingSelect,
   onNewTasking,
   isCollapsed,
-  onToggle
+  onToggle,
+  taskings,
+  isLoading = false
 }) => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const personalTaskings = mockTaskings
+  
+  const personalTaskings = taskings
     .filter(t => t.category === 'personal')
     .sort((a, b) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime());
-  const sharedTaskings = mockTaskings
+  const sharedTaskings = taskings
     .filter(t => t.category === 'shared')
     .sort((a, b) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime());
 
@@ -93,38 +109,63 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       )}
       <div className="space-y-1">
-        {taskings.map((tasking) => (
-          <button
-            key={tasking.id}
-            onClick={() => onTaskingSelect(tasking.id)}
-            className={`w-full text-left px-3 py-2.5 rounded-lg transition-all duration-200 group ${
-              activeTasking === tasking.id
-                ? 'bg-blue-50 text-blue-700 border border-blue-100'
-                : 'hover:bg-slate-50 text-slate-700 border border-transparent'
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <Folder className={`w-4 h-4 flex-shrink-0 ${
-                activeTasking === tasking.id ? 'text-blue-500' : 'text-slate-400 group-hover:text-slate-500'
-              }`} />
-              {!isCollapsed && (
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate">{tasking.name}</p>
-                  <div className="flex items-center justify-between mt-0.5 w-full">
-                    <span className={`text-xs font-medium rounded-full px-2 py-0.5 ${
-                      tasking.status === 'Complete'
-                        ? 'bg-slate-100 text-green-600'
-                        : 'bg-slate-100 text-yellow-600'
-                    }`}>
-                      {tasking.status}
-                    </span>
-                    <span className="text-[11px] text-slate-400 ml-2 whitespace-nowrap">{timeAgo(tasking.lastUpdated)}</span>
+        {isLoading ? (
+          // Loading state
+          Array.from({ length: 3 }).map((_, index) => (
+            <div key={index} className="px-3 py-2.5">
+              <div className="flex items-center gap-3">
+                <div className="w-4 h-4 bg-slate-200 rounded animate-pulse flex-shrink-0" />
+                {!isCollapsed && (
+                  <div className="flex-1 min-w-0">
+                    <div className="h-4 bg-slate-200 rounded animate-pulse mb-1" />
+                    <div className="h-3 bg-slate-100 rounded animate-pulse w-2/3" />
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </button>
-        ))}
+          ))
+        ) : taskings.length === 0 ? (
+          // Empty state
+          !isCollapsed && (
+            <div className="px-3 py-4 text-center">
+              <p className="text-xs text-slate-400">No {title.toLowerCase()} taskings</p>
+            </div>
+          )
+        ) : (
+          // Actual taskings
+          taskings.map((tasking) => (
+            <button
+              key={tasking.id}
+              onClick={() => onTaskingSelect(tasking.id)}
+              className={`w-full text-left px-3 py-2.5 rounded-lg transition-all duration-200 group ${
+                activeTasking === tasking.id
+                  ? 'bg-blue-50 text-blue-700 border border-blue-100'
+                  : 'hover:bg-slate-50 text-slate-700 border border-transparent'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Folder className={`w-4 h-4 flex-shrink-0 ${
+                  activeTasking === tasking.id ? 'text-blue-500' : 'text-slate-400 group-hover:text-slate-500'
+                }`} />
+                {!isCollapsed && (
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{tasking.name}</p>
+                    <div className="flex items-center justify-between mt-0.5 w-full">
+                      <span className={`text-xs font-medium rounded-full px-2 py-0.5 ${
+                        tasking.status === 'Complete'
+                          ? 'bg-slate-100 text-green-600'
+                          : 'bg-slate-100 text-yellow-600'
+                      }`}>
+                        {tasking.status}
+                      </span>
+                      <span className="text-[11px] text-slate-400 ml-2 whitespace-nowrap">{timeAgo(tasking.lastUpdated)}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </button>
+          ))
+        )}
       </div>
     </div>
   );

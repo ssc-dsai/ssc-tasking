@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { mockTaskings } from '@/data/mockData';
+
 import { Tasking } from '@/types/tasking';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -26,7 +26,7 @@ const Dashboard: React.FC = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isTaskingModalOpen, setIsTaskingModalOpen] = useState(false);
-  const [taskings, setTaskings] = useState<Tasking[]>(mockTaskings);
+  const [taskings, setTaskings] = useState<Tasking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -134,6 +134,8 @@ const Dashboard: React.FC = () => {
           onNewTasking={handleNewTasking}
           isCollapsed={isSidebarCollapsed && !isMobileSidebarOpen}
           onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          taskings={taskings}
+          isLoading={isLoading}
         />
       </div>
 
@@ -213,8 +215,39 @@ const Dashboard: React.FC = () => {
                 <span className="text-sm text-slate-500">{taskings.length} taskings</span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {taskings.map((tasking) => (
+              {isLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {Array.from({ length: 6 }).map((_, index) => (
+                    <div key={index} className="bg-white rounded-lg border border-slate-200 p-4 animate-pulse">
+                      <div className="flex items-start gap-3 mb-3">
+                        <div className="w-8 h-8 bg-slate-200 rounded-lg flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <div className="h-4 bg-slate-200 rounded mb-2 w-3/4" />
+                          <div className="h-3 bg-slate-100 rounded w-1/2" />
+                        </div>
+                      </div>
+                      <div className="h-3 bg-slate-100 rounded mb-2" />
+                      <div className="h-3 bg-slate-100 rounded mb-2 w-4/5" />
+                      <div className="h-3 bg-slate-100 rounded w-2/3" />
+                    </div>
+                  ))}
+                </div>
+              ) : error ? (
+                <div className="text-center py-12">
+                  <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <FolderOpen className="w-6 h-6 text-red-400" />
+                  </div>
+                  <h3 className="text-base font-medium text-slate-900 mb-2">Error loading taskings</h3>
+                  <p className="text-slate-600 text-sm max-w-sm mx-auto mb-4">
+                    {error}
+                  </p>
+                  <Button onClick={() => window.location.reload()} variant="outline" size="sm">
+                    Try Again
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {taskings.map((tasking) => (
                   <div
                     key={tasking.id}
                     className="bg-white rounded-lg border border-slate-200 p-4 hover:shadow-md hover:border-slate-300 transition-all duration-200 cursor-pointer group"
@@ -253,11 +286,12 @@ const Dashboard: React.FC = () => {
                         <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
-              {taskings.length === 0 && (
+              {!isLoading && !error && taskings.length === 0 && (
                 <div className="text-center py-12">
                   <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-3">
                     <FolderOpen className="w-6 h-6 text-slate-400" />

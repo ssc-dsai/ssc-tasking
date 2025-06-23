@@ -45,165 +45,9 @@ interface ChatMessage {
   timestamp: string;
 }
 
-// Mock files data with different sets for different taskings
-const getFilesForTasking = (taskingId: string): TaskingFile[] => {
-  if (taskingId === '1') {
-    // Q4 Financial Performance Review - Full details
-    return [
-      {
-        id: '1',
-        name: 'Q4_Financial_Report.pdf',
-        type: 'application/pdf',
-        size: 2048000,
-        uploadedAt: '2024-01-15'
-      },
-      {
-        id: '2',
-        name: 'Budget_Analysis_Q4.xlsx',
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        size: 1024000,
-        uploadedAt: '2024-01-14'
-      },
-      {
-        id: '3',
-        name: 'Executive_Summary_Q4.docx',
-        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        size: 512000,
-        uploadedAt: '2024-01-13'
-      },
-      {
-        id: '4',
-        name: 'Cash_Flow_Analysis.xlsx',
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        size: 756000,
-        uploadedAt: '2024-01-12'
-      },
-      {
-        id: '5',
-        name: 'Cost_Optimization_Report.pdf',
-        type: 'application/pdf',
-        size: 1200000,
-        uploadedAt: '2024-01-11'
-      },
-      {
-        id: '6',
-        name: 'Revenue_Performance_Q4.csv',
-        type: 'text/csv',
-        size: 245000,
-        uploadedAt: '2024-01-10'
-      },
-      {
-        id: '7',
-        name: 'Board_Meeting_Notes.docx',
-        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        size: 890000,
-        uploadedAt: '2024-01-09'
-      },
-      {
-        id: '8',
-        name: 'Variance_Analysis_Report.pdf',
-        type: 'application/pdf',
-        size: 1500000,
-        uploadedAt: '2024-01-08'
-      }
-    ];
-  } else if (taskingId === '2') {
-    // Global Product Launch Strategy - Files but no briefings
-    return [
-      {
-        id: '9',
-        name: 'Market_Research_Report.pdf',
-        type: 'application/pdf',
-        size: 3200000,
-        uploadedAt: '2024-01-10'
-      },
-      {
-        id: '10',
-        name: 'Competitive_Analysis.xlsx',
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        size: 1800000,
-        uploadedAt: '2024-01-09'
-      },
-      {
-        id: '11',
-        name: 'Customer_Segmentation_Data.csv',
-        type: 'text/csv',
-        size: 650000,
-        uploadedAt: '2024-01-08'
-      },
-      {
-        id: '12',
-        name: 'Pricing_Strategy_Models.xlsx',
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        size: 1100000,
-        uploadedAt: '2024-01-07'
-      },
-      {
-        id: '13',
-        name: 'Go_To_Market_Plan.docx',
-        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        size: 950000,
-        uploadedAt: '2024-01-06'
-      },
-      {
-        id: '14',
-        name: 'Product_Roadmap.pdf',
-        type: 'application/pdf',
-        size: 2100000,
-        uploadedAt: '2024-01-05'
-      }
-    ];
-  } else {
-    // Random files for other taskings
-    return [
-      {
-        id: `${taskingId}-1`,
-        name: 'Tasking_Overview.pdf',
-        type: 'application/pdf',
-        size: 1024000,
-        uploadedAt: '2024-01-01'
-      },
-      {
-        id: `${taskingId}-2`,
-        name: 'Analysis_Report.xlsx',
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        size: 512000,
-        uploadedAt: '2023-12-30'
-      }
-    ];
-  }
-};
 
-const mockBriefingNote = {
-  id: '1',
-  title: 'Q4 Financial Performance Executive Summary',
-  summary: 'The Q4 financial analysis reveals strong performance in core business units with revenue exceeding targets by 12%. However, operational costs have increased by 8% compared to Q3, primarily driven by expanded marketing initiatives and technology infrastructure investments.',
-  keyPoints: [
-    'Revenue growth of 12% above target, driven by strong performance in enterprise sales',
-    'Operating expenses increased 8% due to strategic technology investments',
-    'Cash flow remains strong with 15% improvement over previous quarter',
-    'Customer acquisition costs decreased by 5% while retention improved to 94%'
-  ],
-  risks: [
-    'Market volatility could impact Q1 projections',
-    'Increased competition in core market segments',
-    'Supply chain disruptions affecting product delivery timelines'
-  ],
-  recommendations: [
-    'Implement cost optimization program targeting non-essential operational expenses',
-    'Accelerate digital transformation initiatives to improve operational efficiency',
-    'Diversify revenue streams to reduce dependency on enterprise segment',
-    'Strengthen supplier relationships to mitigate supply chain risks'
-  ],
-  nextSteps: [
-    'Schedule executive review meeting for budget reallocation decisions',
-    'Initiate cost reduction taskforce with department heads',
-    'Develop contingency plans for Q1 market scenarios',
-    'Update quarterly forecasts based on current trends'
-  ],
-  createdAt: '2024-01-15',
-  projectId: '1'
-};
+
+
 
 // Configure PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
@@ -256,7 +100,7 @@ const TaskingView: React.FC = () => {
     category: 'personal' as const
   });
 
-  // Derive files: real from API, otherwise mock (demo id '1')
+  // Derive files: real from API, otherwise empty
   const files: TaskingFile[] = React.useMemo(() => {
     if (isRealTasking && realTaskingData && realTaskingData.data) {
       return realTaskingData.data.files.map(file => ({
@@ -267,7 +111,7 @@ const TaskingView: React.FC = () => {
         uploadedAt: new Date(file.created_at).toISOString().split('T')[0]
       }));
     }
-    return getFilesForTasking(taskingId || '1');
+    return [];
   }, [isRealTasking, realTaskingData, taskingId]);
 
   const [generatedBriefing, setGeneratedBriefing] = useState(taskingId === '1' ? {
@@ -757,6 +601,30 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
     }
   };
 
+  // Extract first header from briefing content
+  const extractFirstHeader = (content: string): { header: string; remainingContent: string } => {
+    // Look for the first markdown header (# or ##)
+    const headerMatch = content.match(/^(#{1,2})\s+(.+)$/m);
+    
+    if (headerMatch) {
+      const fullHeader = headerMatch[0];
+      const headerText = headerMatch[2].trim();
+      
+      // Remove the first header from the content
+      const remainingContent = content.replace(fullHeader, '').trim();
+      
+      return {
+        header: headerText,
+        remainingContent: remainingContent
+      };
+    }
+    
+    return {
+      header: '',
+      remainingContent: content
+    };
+  };
+
   // Sync server history into local state once loaded
   useEffect(() => {
     if (!isRealTasking || loadingHistory) return;
@@ -897,6 +765,8 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
           onNewTasking={handleNewTasking}
           isCollapsed={isSidebarCollapsed && !isMobileSidebarOpen}
           onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          taskings={[]}
+          isLoading={false}
         />
       </div>
 
@@ -984,13 +854,23 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                 </div>
               </div>
 
-              {/* Content */}
+                            {/* Content */}
               {savedBriefings[selectedBriefingIndex] ? (
                 <div className="flex-1 overflow-hidden">
                   {/* Briefing Content Box */}
                   <div className="h-full border border-gray-200 rounded-lg bg-gray-50">
                     {/* Briefing Box Header */}
-                    <div className="flex items-center justify-end px-4 py-3 bg-white rounded-t-lg">
+                    <div className="flex items-center justify-between px-4 py-3 bg-white rounded-t-lg border-b border-gray-200">
+                      <div className="flex-1 min-w-0 mr-4">
+                        {(() => {
+                          const { header } = extractFirstHeader(savedBriefings[selectedBriefingIndex].content);
+                          return header ? (
+                            <h3 className="text-xl font-bold text-gray-900 truncate">
+                              {header}
+                            </h3>
+                          ) : null;
+                        })()}
+                      </div>
                       <div className="flex items-center space-x-1">
                         {/* Markdown View Toggle */}
                         <Button
@@ -1027,11 +907,11 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                       </div>
                     </div>
                     {/* Briefing Content */}
-                    <div className="p-2 h-[calc(100%-60px)] overflow-y-auto bg-white rounded-b-lg">
+                    <div className="p-4 h-[calc(100%-60px)] overflow-y-auto bg-white rounded-b-lg">
                       <MarkdownBriefingDisplay 
                         briefing={{
                           title: savedBriefings[selectedBriefingIndex].title,
-                          content: savedBriefings[selectedBriefingIndex].content,
+                          content: extractFirstHeader(savedBriefings[selectedBriefingIndex].content).remainingContent,
                           createdAt: savedBriefings[selectedBriefingIndex].created_at
                         }}
                         markdownView={isMarkdownView}
@@ -1045,7 +925,17 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                   {/* Briefing Content Box */}
                   <div className="h-full border border-gray-200 rounded-lg bg-gray-50">
                     {/* Briefing Box Header */}
-                    <div className="flex items-center justify-end px-4 py-3 bg-white rounded-t-lg">
+                    <div className="flex items-center justify-between px-4 py-3 bg-white rounded-t-lg border-b border-gray-200">
+                      <div className="flex-1 min-w-0 mr-4">
+                        {(() => {
+                          const { header } = extractFirstHeader(markdownBriefing.content);
+                          return header ? (
+                            <h3 className="text-xl font-bold text-gray-900 truncate">
+                              {header}
+                            </h3>
+                          ) : null;
+                        })()}
+                      </div>
                       <div className="flex items-center space-x-1">
                         {/* Markdown View Toggle */}
                         <Button
@@ -1082,8 +972,14 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                       </div>
                     </div>
                     {/* Briefing Content */}
-                    <div className="p-2 h-[calc(100%-60px)] overflow-y-auto bg-white rounded-b-lg">
-                      <MarkdownBriefingDisplay briefing={markdownBriefing} hideTitle={true} />
+                    <div className="p-4 h-[calc(100%-60px)] overflow-y-auto bg-white rounded-b-lg">
+                      <MarkdownBriefingDisplay 
+                        briefing={{
+                          ...markdownBriefing,
+                          content: extractFirstHeader(markdownBriefing.content).remainingContent
+                        }} 
+                        hideTitle={true} 
+                      />
                     </div>
                   </div>
                 </div>
@@ -1092,7 +988,10 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                   {/* Briefing Content Box */}
                   <div className="h-full border border-gray-200 rounded-lg bg-gray-50">
                     {/* Briefing Box Header */}
-                    <div className="flex items-center justify-end px-4 py-3 bg-white rounded-t-lg">
+                    <div className="flex items-center justify-between px-4 py-3 bg-white rounded-t-lg border-b border-gray-200">
+                      <div className="flex-1 min-w-0 mr-4">
+                        {/* No header extraction for legacy generatedBriefing */}
+                      </div>
                       <div className="flex items-center space-x-1">
                         {/* Markdown View Toggle */}
                         <Button
@@ -1129,8 +1028,12 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                       </div>
                     </div>
                     {/* Briefing Content */}
-                    <div className="p-2 h-[calc(100%-60px)] overflow-y-auto bg-white rounded-b-lg">
-                      <BriefingDisplay briefing={generatedBriefing} markdownView={isMarkdownView} hideTitle={true} />
+                    <div className="p-4 h-[calc(100%-60px)] overflow-y-auto bg-white rounded-b-lg">
+                      <BriefingDisplay 
+                        briefing={generatedBriefing} 
+                        markdownView={isMarkdownView} 
+                        hideTitle={true} 
+                      />
                     </div>
                   </div>
                 </div>

@@ -53,10 +53,10 @@ export const MarkdownBriefingDisplay: React.FC<MarkdownBriefingDisplayProps> = (
     const cleaned = content.trim().replace(/\n\s*\n\s*\n+/g, '\n\n');
     
     return cleaned
-      // Headers (H1-H6) with proper markdown styling
-      .replace(/^### (.+)$/gm, '<h3 class="text-lg font-semibold text-gray-900 mt-4 mb-3 border-b border-gray-100 pb-1">$1</h3>')
-      .replace(/^## (.+)$/gm, '<h2 class="text-xl font-bold text-gray-900 mt-2 mb-4 border-b-2 border-gray-200 pb-2">$1</h2>')
-      .replace(/^# (.+)$/gm, '<h1 class="text-2xl font-bold text-gray-900 mt-2 mb-6 border-b-2 border-gray-300 pb-3">$1</h1>')
+      // Headers (H1-H6) with proper markdown styling - reduced sizes for modal
+      .replace(/^### (.+)$/gm, '<h3 class="text-base font-semibold text-gray-900 mt-3 mb-2 border-b border-gray-100 pb-1">$1</h3>')
+      .replace(/^## (.+)$/gm, '<h2 class="text-lg font-bold text-gray-900 mt-4 mb-3 border-b border-gray-200 pb-1">$1</h2>')
+      .replace(/^# (.+)$/gm, '<h1 class="text-xl font-bold text-gray-900 mt-2 mb-4 border-b-2 border-gray-200 pb-2">$1</h1>')
       
       // Code blocks (triple backticks)
       .replace(/```(\w+)?\n([\s\S]*?)```/g, '<div class="bg-gray-50 border border-gray-200 rounded-md p-4 my-4 font-mono text-sm overflow-x-auto"><code class="text-gray-800">$2</code></div>')
@@ -177,13 +177,13 @@ export const MarkdownBriefingDisplay: React.FC<MarkdownBriefingDisplayProps> = (
         
         return (
           <div key={index} className="mb-4">
-            {/* Section Header - different styling for H1 vs H2 */}
+            {/* Section Header - reduced sizes and margins for modal */}
             {section.level === 1 ? (
-              <h1 className={`text-2xl font-bold text-gray-900 ${isFirst ? 'mt-0' : 'mt-6'} mb-6 border-b-4 border-gray-300 pb-3`}>
+              <h1 className={`text-xl font-bold text-gray-900 ${isFirst ? 'mt-0' : 'mt-4'} mb-4 border-b-2 border-gray-200 pb-2`}>
                 {section.title}
               </h1>
             ) : (
-              <h2 className={`text-xl font-bold text-gray-900 ${isFirst ? 'mt-0' : 'mt-4'} mb-4 border-b-2 border-gray-200 pb-2`}>
+              <h2 className={`text-lg font-bold text-gray-900 ${isFirst ? 'mt-0' : 'mt-3'} mb-3 border-b border-gray-200 pb-1`}>
                 {section.title}
               </h2>
             )}

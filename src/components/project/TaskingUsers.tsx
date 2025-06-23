@@ -16,27 +16,11 @@ interface TaskingUsersProps {
   isRealTasking?: boolean;
 }
 
-const mockUsers: TaskingUser[] = [
-  {
-    id: '1',
-    name: 'Mohib Rab',
-    email: 'mohib.rab@company.com',
-    role: 'owner',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=32&h=32&fit=crop&crop=face&auto=format'
-  },
-  {
-    id: '2',
-    name: 'Emily Johnson',
-    email: 'emily.johnson@company.com',
-    role: 'editor',
-    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=32&h=32&fit=crop&crop=face&auto=format'
-  }
-];
+
 
 export const TaskingUsers: React.FC<TaskingUsersProps> = ({ taskingId, isRealTasking = false }) => {
-  // For real taskings, start with empty users list; for mock, use mock data
-  // Temporarily showing mock users even for real taskings for UI demonstration
-  const [users, setUsers] = useState<TaskingUser[]>(mockUsers);
+  // Start with empty users list
+  const [users, setUsers] = useState<TaskingUser[]>([]);
   const [newUserEmail, setNewUserEmail] = useState('');
   const [isAdding, setIsAdding] = useState(false);
 
