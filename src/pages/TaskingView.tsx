@@ -64,6 +64,10 @@ const TaskingView: React.FC = () => {
   const [isMarkdownView, setIsMarkdownView] = useState(false);
   const [selectedBriefingIndex, setSelectedBriefingIndex] = useState(0);
   
+  // Sidebar taskings state
+  const [taskings, setTaskings] = useState<Tasking[]>([]);
+  const [isLoadingTaskings, setIsLoadingTaskings] = useState(true);
+  
   // Chat assistant UI state
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -719,6 +723,59 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
     }
   };
 
+  // Fetch taskings for sidebar
+  useEffect(() => {
+    const fetchTaskings = async () => {
+      if (!user || !session) {
+        console.log('No user or session available for taskings');
+        return;
+      }
+      
+      console.log('📋 [TaskingView] Fetching taskings for sidebar');
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-taskings?limit=50`;
+
+      try {
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          console.error('❌ [TaskingView] Edge function error:', result);
+          setIsLoadingTaskings(false);
+          return;
+        }
+
+        console.log('✅ [TaskingView] Taskings fetched:', result.data?.length || 0);
+
+        const formattedTaskings: Tasking[] = (result.data || []).map((tasking: any) => ({
+          id: tasking.id,
+          name: tasking.name,
+          description: tasking.description || '',
+          category: tasking.category,
+          fileCount: tasking.file_count || 0,
+          status: 'In Progress',
+          createdAt: tasking.created_at,
+          lastUpdated: tasking.last_activity || tasking.updated_at,
+          users: []
+        }));
+
+        setTaskings(formattedTaskings);
+      } catch (err: any) {
+        console.error('❌ [TaskingView] Network or parsing error:', err);
+      } finally {
+        setIsLoadingTaskings(false);
+      }
+    };
+
+    fetchTaskings();
+  }, [user, session]);
+
   // Loading / error handling for real taskings
   if (isRealTasking) {
     if (isLoadingReal || !realTaskingData) {
@@ -765,8 +822,8 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
           onNewTasking={handleNewTasking}
           isCollapsed={isSidebarCollapsed && !isMobileSidebarOpen}
           onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-          taskings={[]}
-          isLoading={false}
+          taskings={taskings}
+          isLoading={isLoadingTaskings}
         />
       </div>
 
