@@ -67,7 +67,7 @@ const Dashboard: React.FC = () => {
           id: tasking.id,
           name: tasking.name,
           description: tasking.description || '',
-          category: tasking.category,
+          category: tasking.access_type === 'owner' ? 'personal' : 'shared',
           fileCount: tasking.file_count || 0,
           status: 'In Progress',
           createdAt: tasking.created_at,

@@ -12,7 +12,8 @@ import { BriefingModal } from '../components/briefings/BriefingModal';
 import { BriefingGenerationModal } from '../components/briefings/BriefingGenerationModal';
 import { MarkdownBriefingDisplay } from '../components/briefings/MarkdownBriefingDisplay';
 import { ProjectCreationModal } from '../components/project/ProjectCreationModal';
-import { Folder, Upload, FileText, Eye, Menu, X, Plus, Download, FileDown, Users, ChevronRight, ChevronDown, Expand } from 'lucide-react';
+import { ShareTaskingModal } from '../components/project/ShareTaskingModal';
+import { Folder, Upload, FileText, Eye, Menu, X, Plus, Download, FileDown, Users, ChevronRight, ChevronDown, Expand, Share2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
@@ -25,6 +26,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useChatMessages } from '@/hooks/useChatMessages';
 import { useVectorSearch } from '@/hooks/useVectorSearch';
+import { useSharedUsers } from '@/hooks/useSharedUsers';
 
 
 import { useQueryClient } from '@tanstack/react-query';
@@ -61,6 +63,7 @@ const TaskingView: React.FC = () => {
   const [isTaskingModalOpen, setIsTaskingModalOpen] = useState(false);
   const [isBriefingModalOpen, setIsBriefingModalOpen] = useState(false);
   const [isBriefingGenerationModalOpen, setIsBriefingGenerationModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isMarkdownView, setIsMarkdownView] = useState(false);
   const [selectedBriefingIndex, setSelectedBriefingIndex] = useState(0);
   
@@ -153,6 +156,9 @@ const TaskingView: React.FC = () => {
   const { user, session } = useAuth();
   const queryClient = useQueryClient();
   const { searchDocuments, isSearching } = useVectorSearch();
+  
+  // Fetch shared users for this tasking
+  const { sharedUsers, refetch: refetchSharedUsers } = useSharedUsers(taskingId || '');
   
   // Helper to check if we have files
   const hasFiles = files.length > 0;
@@ -757,7 +763,7 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
           id: tasking.id,
           name: tasking.name,
           description: tasking.description || '',
-          category: tasking.category,
+          category: tasking.access_type === 'owner' ? 'personal' : 'shared',
           fileCount: tasking.file_count || 0,
           status: 'In Progress',
           createdAt: tasking.created_at,
@@ -832,6 +838,17 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
         {/* Top Header */}
         <TopHeader 
           title={currentTasking.name}
+          actions={
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsShareModalOpen(true)}
+              className="flex items-center space-x-1"
+            >
+              <Share2 className="w-4 h-4" />
+              <span>Share</span>
+            </Button>
+          }
         />
         
         <div className="flex-1 p-4 overflow-hidden">
@@ -1206,7 +1223,7 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                 <div className="flex items-center space-x-2">
                   {/* Add User Button */}
                   <Button
-                    disabled={isRealTasking}
+                    onClick={() => setIsShareModalOpen(true)}
                     className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 flex items-center space-x-1"
                     size="sm"
                   >
@@ -1217,7 +1234,14 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
               </div>
               
               <div className="flex-1 overflow-hidden">
-                <TaskingUsers taskingId={taskingId || '1'} isRealTasking={isRealTasking} />
+                <TaskingUsers 
+                  taskingId={taskingId || '1'} 
+                  isRealTasking={isRealTasking}
+                  ownerId={realTaskingData?.data?.owner?.id}
+                  ownerEmail={realTaskingData?.data?.owner?.email}
+                  ownerName={realTaskingData?.data?.owner?.full_name}
+                  ownerAvatarUrl={realTaskingData?.data?.owner?.avatar_url}
+                />
               </div>
             </div>
           </div>
@@ -1266,6 +1290,22 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
             isOpen={isTaskingModalOpen}
             onClose={() => setIsTaskingModalOpen(false)}
             onProjectCreated={handleTaskingCreated}
+          />
+
+          {/* Share Tasking Modal */}
+          <ShareTaskingModal
+            isOpen={isShareModalOpen}
+            onClose={() => setIsShareModalOpen(false)}
+            taskingId={taskingId || ''}
+            taskingName={currentTasking?.name || 'Tasking'}
+            onUserAdded={() => {
+              refetchSharedUsers();
+              console.log('User added to tasking');
+            }}
+            onUserRemoved={() => {
+              refetchSharedUsers();
+              console.log('User removed from tasking');
+            }}
           />
         </div>
       </div>

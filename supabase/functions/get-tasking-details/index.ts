@@ -67,11 +67,18 @@ serve(async (req: Request) => {
 
     console.log('Fetching tasking details for:', taskingId, 'user:', user.id)
 
-    // Get the main tasking with all related data
+    // Get the main tasking with all related data including owner profile
+    // Don't filter by user_id here - let RLS policies handle access control
     const { data: tasking, error: taskingError } = await supabaseClient
       .from('taskings')
       .select(`
         *,
+        owner:profiles!taskings_user_id_fkey (
+          id,
+          email,
+          full_name,
+          avatar_url
+        ),
         files (
           id,
           name,
@@ -98,10 +105,14 @@ serve(async (req: Request) => {
           sender,
           content,
           created_at
+        ),
+        shared_taskings (
+          user_id,
+          created_at,
+          shared_by
         )
       `)
       .eq('id', taskingId)
-      .eq('user_id', user.id)
       .order('created_at', { ascending: false, foreignTable: 'briefings' })
       .single()
 
@@ -135,6 +146,9 @@ serve(async (req: Request) => {
     const embeddingCount = tasking.files?.reduce((total, file) => 
       total + (file.document_embeddings?.length || 0), 0) || 0
 
+    // Just count shared users, don't transform profile data
+    const sharedUserCount = tasking.shared_taskings?.length || 0
+
     // Transform the data to include summary statistics
     const detailedTasking = {
       ...tasking,
@@ -142,6 +156,7 @@ serve(async (req: Request) => {
       briefing_count: briefingCount,
       embedding_count: embeddingCount,
       last_activity: tasking.updated_at || tasking.created_at,
+      shared_user_count: sharedUserCount,
       // Transform files to include embedding counts
       files: tasking.files?.map(file => ({
         ...file,

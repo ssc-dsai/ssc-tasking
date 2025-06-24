@@ -29,6 +29,15 @@ interface TaskingBriefing {
   updated_at: string;
 }
 
+interface SharedUser {
+  id: string;
+  email: string;
+  full_name: string;
+  avatar_url?: string;
+  shared_at: string;
+  shared_by: string;
+}
+
 interface DetailedTasking {
   id: string;
   name: string;
@@ -43,6 +52,13 @@ interface DetailedTasking {
   last_activity: string;
   files: TaskingFile[];
   briefings: TaskingBriefing[];
+  shared_users: SharedUser[];
+  owner?: {
+    id: string;
+    email: string;
+    full_name: string;
+    avatar_url?: string;
+  };
 }
 
 interface TaskingDetailsResponse {
@@ -129,4 +145,4 @@ export const useTaskingDetails = (taskingId: string, options: UseTaskingDetailsO
 }
 
 // Export types for use in components
-export type { DetailedTasking, TaskingFile, TaskingBriefing, DocumentEmbedding, TaskingDetailsResponse } 
+export type { DetailedTasking, TaskingFile, TaskingBriefing, DocumentEmbedding, TaskingDetailsResponse, SharedUser } 

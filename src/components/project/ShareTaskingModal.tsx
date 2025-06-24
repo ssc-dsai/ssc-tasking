@@ -1,0 +1,246 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Search, UserPlus, Trash2, Users } from 'lucide-react';
+import { useUserSearch } from '@/hooks/useUserSearch';
+import { useShareTasking } from '@/hooks/useShareTasking';
+import { useSharedUsers } from '@/hooks/useSharedUsers';
+import { useToast } from '@/hooks/use-toast';
+
+interface SharedUser {
+  id: string;
+  email: string;
+  full_name: string;
+  avatar_url?: string;
+  shared_at: string;
+}
+
+interface ShareTaskingModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  taskingId: string;
+  taskingName: string;
+  onUserAdded?: () => void;
+  onUserRemoved?: () => void;
+}
+
+export const ShareTaskingModal: React.FC<ShareTaskingModalProps> = ({
+  isOpen,
+  onClose,
+  taskingId,
+  taskingName,
+  onUserAdded,
+  onUserRemoved
+}) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+
+  const { users, isLoading: isSearching, searchUsers } = useUserSearch();
+  const { addUser, removeUser, isLoading: isSharing } = useShareTasking();
+  const { sharedUsers, isLoading: isLoadingSharedUsers, refetch: refetchSharedUsers } = useSharedUsers(taskingId);
+  const { toast } = useToast();
+
+  // Debounced search
+  useEffect(() => {
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+
+    if (searchTerm.length >= 2) {
+      const timeout = setTimeout(() => {
+        searchUsers(searchTerm, taskingId);
+      }, 300);
+      setSearchTimeout(timeout);
+    } else {
+      // Clear users if search term is too short
+      searchUsers('');
+    }
+
+    return () => {
+      if (searchTimeout) {
+        clearTimeout(searchTimeout);
+      }
+    };
+  }, [searchTerm, taskingId]);
+
+  const handleAddUser = async (userId: string, userEmail: string) => {
+    const result = await addUser(taskingId, userId);
+    
+    if (result) {
+      toast({
+        title: "User added successfully",
+        description: `${userEmail} now has access to this tasking.`,
+      });
+      setSearchTerm('');
+      refetchSharedUsers(); // Refresh the shared users list
+      onUserAdded?.();
+    } else {
+      toast({
+        title: "Failed to add user",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRemoveUser = async (userId: string, userEmail: string) => {
+    const result = await removeUser(taskingId, userId);
+    
+    if (result) {
+      toast({
+        title: "User removed successfully",
+        description: `${userEmail} no longer has access to this tasking.`,
+      });
+      refetchSharedUsers(); // Refresh the shared users list
+      onUserRemoved?.();
+    } else {
+      toast({
+        title: "Failed to remove user",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getUserInitials = (name: string, email: string) => {
+    if (name && name.trim()) {
+      return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    }
+    return email.slice(0, 2).toUpperCase();
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center space-x-2">
+            <Users className="w-5 h-5" />
+            <span>Share "{taskingName}"</span>
+          </DialogTitle>
+          <DialogDescription>
+            Add people to collaborate on this tasking. You can remove access at any time.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-6">
+          {/* Add User Section */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium text-gray-900">Add People</h3>
+            
+            {/* Search Input */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                placeholder="Search by name or email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+
+            {/* Search Results */}
+            {searchTerm.length >= 2 && (
+              <div className="border rounded-lg max-h-48 overflow-y-auto">
+                {isSearching ? (
+                  <div className="p-4 text-center text-gray-500">
+                    <div className="animate-spin w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+                    Searching...
+                  </div>
+                ) : users.length > 0 ? (
+                  <div className="divide-y">
+                    {users.map((user) => (
+                      <div key={user.id} className="p-3 flex items-center justify-between hover:bg-gray-50">
+                        <div className="flex items-center space-x-3">
+                          <Avatar className="w-8 h-8">
+                            <AvatarImage src={user.avatar_url} />
+                            <AvatarFallback className="text-xs">
+                              {getUserInitials(user.full_name, user.email)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="text-sm font-medium">{user.display_name}</div>
+                            <div className="text-xs text-gray-500">{user.email}</div>
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          onClick={() => handleAddUser(user.id, user.email)}
+                          disabled={isSharing}
+                          className="h-7"
+                        >
+                          <UserPlus className="w-3 h-3 mr-1" />
+                          Add
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-4 text-center text-gray-500">
+                    No users found
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Current Shared Users */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium text-gray-900">
+              People with access ({isLoadingSharedUsers ? '...' : sharedUsers.length})
+            </h3>
+            
+            {isLoadingSharedUsers ? (
+              <div className="text-center py-8 text-gray-500">
+                <div className="animate-spin w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+                <p className="text-sm">Loading shared users...</p>
+              </div>
+            ) : sharedUsers.length > 0 ? (
+              <div className="space-y-2">
+                {sharedUsers.map((user) => (
+                  <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <Avatar className="w-8 h-8">
+                        <AvatarImage src={user.avatar_url} />
+                        <AvatarFallback className="text-xs">
+                          {getUserInitials(user.full_name, user.email)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="text-sm font-medium">{user.full_name || user.email}</div>
+                        <div className="text-xs text-gray-500">{user.email}</div>
+                      </div>
+                    </div>
+                    
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveUser(user.id, user.email)}
+                      disabled={isSharing}
+                      className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <Users className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                <p>No users have been shared with yet</p>
+                <p className="text-xs">Search above to add people</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}; 

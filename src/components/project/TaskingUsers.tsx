@@ -1,146 +1,133 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Users, X, Plus, Mail } from 'lucide-react';
-
-interface TaskingUser {
-  id: string;
-  name: string;
-  email: string;
-  role: 'owner' | 'editor' | 'viewer';
-  avatar?: string;
-}
+import { Users } from "lucide-react";
+import { useSharedUsers } from "../../hooks/useSharedUsers";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 interface TaskingUsersProps {
   taskingId: string;
   isRealTasking?: boolean;
+  ownerId?: string;
+  ownerEmail?: string;
+  ownerName?: string;
+  ownerAvatarUrl?: string;
 }
 
+export const TaskingUsers = ({ 
+  taskingId, 
+  isRealTasking = false,
+  ownerId,
+  ownerEmail,
+  ownerName,
+  ownerAvatarUrl
+}: TaskingUsersProps) => {
+  const { sharedUsers, isLoading, error } = useSharedUsers(taskingId);
 
-
-export const TaskingUsers: React.FC<TaskingUsersProps> = ({ taskingId, isRealTasking = false }) => {
-  // Start with empty users list
-  const [users, setUsers] = useState<TaskingUser[]>([]);
-  const [newUserEmail, setNewUserEmail] = useState('');
-  const [isAdding, setIsAdding] = useState(false);
-
-  const handleAddUser = () => {
-    if (!newUserEmail.trim()) return;
-    
-    const newUser: TaskingUser = {
-      id: Date.now().toString(),
-      name: newUserEmail.split('@')[0],
-      email: newUserEmail,
-      role: 'viewer'
-    };
-    
-    setUsers([...users, newUser]);
-    setNewUserEmail('');
-    setIsAdding(false);
-  };
-
-  const handleRemoveUser = (userId: string) => {
-    setUsers(users.filter(user => user.id !== userId));
-  };
-
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'owner': return 'bg-blue-100 text-blue-800';
-      case 'editor': return 'bg-green-100 text-green-800';
-      case 'viewer': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const getUserInitials = (name: string, email: string) => {
+    if (name && name.trim()) {
+      return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     }
+    return email.slice(0, 2).toUpperCase();
   };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        <div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+        <p className="text-sm">Loading shared users...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8 text-red-500">
+        <Users className="w-8 h-8 mx-auto mb-2" />
+        <p className="text-sm">Error loading shared users</p>
+        <p className="text-xs">{error}</p>
+      </div>
+    );
+  }
+
+  const totalUsers = (ownerId ? 1 : 0) + sharedUsers.length;
+
+  if (totalUsers === 0) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+        <p className="text-sm">No users found for this tasking.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-gray-700">
-          Users ({users.length})
-        </h3>
+    <div className="space-y-3">
+      <div className="text-sm text-gray-600 mb-4">
+        Users ({totalUsers})
       </div>
-
-      {isAdding && (
-        <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-          <div className="flex items-center space-x-2">
-            <Input
-              type="email"
-              placeholder="Enter email address"
-              value={newUserEmail}
-              onChange={(e) => setNewUserEmail(e.target.value)}
-              className="flex-1"
-            />
-            <Button size="sm" onClick={handleAddUser}>Add</Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => {
-                setIsAdding(false);
-                setNewUserEmail('');
-              }}
-            >
-              Cancel
-            </Button>
+      
+      {/* Owner */}
+      {ownerId && ownerEmail && (
+        <div className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 bg-gray-50">
+          <Avatar className="w-8 h-8">
+            <AvatarImage src={ownerAvatarUrl} />
+            <AvatarFallback className="text-xs">
+              {getUserInitials(ownerName || '', ownerEmail)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center space-x-2">
+              <p className="text-sm font-medium text-gray-900 truncate">
+                {ownerName || ownerEmail}
+              </p>
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                Owner
+              </span>
+            </div>
+            <p className="text-xs text-gray-500 truncate">
+              {ownerEmail}
+            </p>
           </div>
         </div>
       )}
-
-      <div className="space-y-2">
-        {users.map((user) => (
-          <div
-            key={user.id}
-            className={`flex items-center justify-between p-3 rounded-lg border border-gray-200 ${user.role === 'owner' ? 'bg-blue-50' : 'bg-gray-50'}`}
-          >
-            <div className="flex items-center space-x-3 flex-1 min-w-0">
-              {user.avatar ? (
-                <img 
-                  src={user.avatar} 
-                  alt={user.name}
-                  className="w-8 h-8 rounded-full flex-shrink-0 object-cover"
-                />
-              ) : (
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-white text-sm font-medium">
-                    {user.name.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  {user.name}
-                </p>
-                <p className="text-xs text-gray-500 truncate">
-                  {user.email}
-                </p>
-              </div>
-              {user.role !== 'editor' && (
-                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getRoleColor(user.role)}`}>
-                  {user.role}
-                </span>
-              )}
-            </div>
-            {user.role !== 'owner' && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleRemoveUser(user.id)}
-                className="text-gray-400 hover:text-red-600 ml-2"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            )}
+      
+      {/* Shared Users */}
+      {sharedUsers.map((user) => (
+        <div
+          key={user.id}
+          className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 bg-gray-50"
+        >
+          <Avatar className="w-8 h-8">
+            <AvatarImage src={user.avatar_url} />
+            <AvatarFallback className="text-xs">
+              {getUserInitials(user.full_name, user.email)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-900 truncate">
+              {user.full_name || user.email}
+            </p>
+            <p className="text-xs text-gray-500 truncate">
+              {user.email}
+            </p>
+            <p className="text-xs text-gray-400">
+              Added {formatDate(user.shared_at)}
+            </p>
           </div>
-        ))}
-      </div>
-
-      {users.length === 0 && (
-        <div className="text-center py-6 text-gray-500">
-          <Users className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+        </div>
+      ))}
+      
+      {/* Empty state for shared users only */}
+      {sharedUsers.length === 0 && ownerId && (
+        <div className="text-center py-4 text-gray-500 border border-dashed border-gray-300 rounded-lg">
           <p className="text-sm">
-            {isRealTasking 
-              ? "User management not yet implemented for real taskings" 
-              : "No users added yet"
-            }
+            Use the "Add User" button in the header to share this tasking.
           </p>
         </div>
       )}
