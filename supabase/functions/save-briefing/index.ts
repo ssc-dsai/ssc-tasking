@@ -3,7 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!
 
 interface SaveBriefingRequest {
   tasking_id: string
@@ -31,7 +31,7 @@ serve(async (req) => {
     }
 
     // Create Supabase client with the user's token
-    const supabaseClient = createClient(supabaseUrl, supabaseServiceKey, {
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
         autoRefreshToken: false,
         persistSession: false,
