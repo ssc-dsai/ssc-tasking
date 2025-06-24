@@ -27,7 +27,7 @@ export const TaskingUsers = ({
     }
     return email.slice(0, 2).toUpperCase();
   };
-
+    
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
@@ -71,7 +71,7 @@ export const TaskingUsers = ({
       <div className="text-sm text-gray-600 mb-4">
         Users ({totalUsers})
       </div>
-      
+
       {/* Owner */}
       {ownerId && ownerEmail && (
         <div className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 bg-gray-50">
@@ -82,7 +82,7 @@ export const TaskingUsers = ({
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2">
               <p className="text-sm font-medium text-gray-900 truncate">
                 {ownerName || ownerEmail}
               </p>
@@ -96,32 +96,32 @@ export const TaskingUsers = ({
           </div>
         </div>
       )}
-      
+
       {/* Shared Users */}
       {sharedUsers.map((user) => (
-        <div
-          key={user.id}
+          <div
+            key={user.id}
           className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 bg-gray-50"
-        >
+          >
           <Avatar className="w-8 h-8">
             <AvatarImage src={user.avatar_url} />
             <AvatarFallback className="text-xs">
               {getUserInitials(user.full_name, user.email)}
             </AvatarFallback>
           </Avatar>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">
               {user.full_name || user.email}
-            </p>
-            <p className="text-xs text-gray-500 truncate">
-              {user.email}
-            </p>
+                </p>
+                <p className="text-xs text-gray-500 truncate">
+                  {user.email}
+                </p>
             <p className="text-xs text-gray-400">
               Added {formatDate(user.shared_at)}
             </p>
           </div>
-        </div>
-      ))}
+          </div>
+        ))}
       
       {/* Empty state for shared users only */}
       {sharedUsers.length === 0 && ownerId && (

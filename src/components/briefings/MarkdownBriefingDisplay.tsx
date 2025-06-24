@@ -174,7 +174,7 @@ export const MarkdownBriefingDisplay: React.FC<MarkdownBriefingDisplayProps> = (
 
         // Determine if this is the first section to remove top margin
         const isFirst = index === 0;
-        
+
         return (
           <div key={index} className="mb-4">
             {/* Section Header - reduced sizes and margins for modal */}
@@ -184,7 +184,7 @@ export const MarkdownBriefingDisplay: React.FC<MarkdownBriefingDisplayProps> = (
               </h1>
             ) : (
               <h2 className={`text-lg font-bold text-gray-900 ${isFirst ? 'mt-0' : 'mt-3'} mb-3 border-b border-gray-200 pb-1`}>
-                {section.title}
+              {section.title}
               </h2>
             )}
             

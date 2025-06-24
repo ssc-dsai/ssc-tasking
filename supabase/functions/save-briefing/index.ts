@@ -83,12 +83,12 @@ serve(async (req) => {
 
     console.log(`📄 [save-briefing] Saving briefing "${title}" for tasking ${tasking_id}`)
 
-    // Verify the user owns the tasking
+    // Verify the user has access to the tasking (owner or shared user)
+    // Let RLS policies handle access control
     const { data: tasking, error: taskingError } = await supabaseClient
       .from('taskings')
       .select('id, user_id')
       .eq('id', tasking_id)
-      .eq('user_id', user.id)
       .single()
 
     if (taskingError || !tasking) {

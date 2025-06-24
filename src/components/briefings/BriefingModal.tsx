@@ -64,12 +64,12 @@ export const BriefingModal: React.FC<BriefingModalProps> = ({
     };
   };
 
-      return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-6xl h-[90vh] p-0 flex flex-col gap-0">
           {/* Fixed Header - matching TaskingView style */}
           <DialogHeader className="px-4 py-3 border-b border-gray-200 bg-white flex-shrink-0">
-            <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0 mr-4">
                 {briefing.content ? (() => {
                   const { header } = extractFirstHeader(briefing.content);
@@ -84,8 +84,8 @@ export const BriefingModal: React.FC<BriefingModalProps> = ({
                   );
                 })() : (
                   <DialogTitle className="text-xl font-bold text-gray-900 truncate">
-                    {briefing.title}
-                  </DialogTitle>
+              {briefing.title}
+            </DialogTitle>
                 )}
                 <div className="flex items-center space-x-1 text-xs text-gray-500 mt-1">
                   <span>Created {new Date(briefing.createdAt).toLocaleDateString('en-US', { 
@@ -113,40 +113,40 @@ export const BriefingModal: React.FC<BriefingModalProps> = ({
                 )}
                 
                 {/* Download Button */}
-                {onDownload && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={onDownload}
+              {onDownload && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onDownload}
                     title="Download Briefing"
                     className="h-8 w-8 p-0"
-                  >
+                >
                     <Download className="w-4 h-4" />
-                  </Button>
-                )}
-              </div>
-            </div>
-          </DialogHeader>
-          
-          {/* Content Area with no extra spacing */}
-          <div className="flex-1 overflow-hidden bg-white">
-            <div className="h-full overflow-y-auto px-4 py-4">
-              {briefing.content ? (
-                <MarkdownBriefingDisplay 
-                  briefing={{
-                    title: briefing.title,
-                    content: extractFirstHeader(briefing.content).remainingContent,
-                    createdAt: briefing.createdAt
-                  }}
-                  markdownView={isMarkdownView}
-                  hideTitle={true}
-                />
-              ) : (
-                <BriefingDisplay briefing={briefing} hideTitle={true} />
+                </Button>
               )}
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
-    );
+        </DialogHeader>
+        
+          {/* Content Area with no extra spacing */}
+          <div className="flex-1 overflow-hidden bg-white">
+            <div className="h-full overflow-y-auto px-4 py-4">
+          {briefing.content ? (
+            <MarkdownBriefingDisplay 
+              briefing={{
+                title: briefing.title,
+                    content: extractFirstHeader(briefing.content).remainingContent,
+                createdAt: briefing.createdAt
+              }}
+                  markdownView={isMarkdownView}
+              hideTitle={true}
+            />
+          ) : (
+            <BriefingDisplay briefing={briefing} hideTitle={true} />
+          )}
+            </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 };

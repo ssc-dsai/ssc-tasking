@@ -168,7 +168,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
               .trim();
             
             if (pageText.length > 0) {
-              fullText += pageText + '\n\n';
+            fullText += pageText + '\n\n';
             }
           }
           
@@ -216,7 +216,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         
         // Only show sample if text is long enough and readable
         if (cleanedText.length > 200 && readabilityRatio > 0.7) {
-          console.log(`📄 [Client PDF] Sample: "${cleanedText.substring(0, 200)}..."`);
+        console.log(`📄 [Client PDF] Sample: "${cleanedText.substring(0, 200)}..."`);
         }
         return cleanedText;
       } else {
@@ -237,18 +237,10 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
       console.log('📄 [File Extraction] Detected PDF, using PDF extraction');
       return await extractTextFromPDF(file);
-    } else if (fileType === 'text/plain' || fileName.endsWith('.txt')) {
-      console.log('📄 [File Extraction] Detected TXT, using text extraction');
-      return await file.text();
-    } else if (fileName.endsWith('.rtf')) {
-      console.log('📄 [File Extraction] Detected RTF, using RTF extraction');
-      // Basic RTF text extraction (remove RTF formatting)
-      const rtfContent = await file.text();
-      return rtfContent.replace(/\\[a-z]+\d*\s?/g, '').replace(/[{}]/g, '').trim();
     }
     
     console.error('📄 [File Extraction] Unsupported file type:', fileType, 'for file:', fileName);
-    throw new Error(`Unsupported file type: ${fileType}`);
+    throw new Error(`Only PDF files are supported. Please upload a PDF file.`);
   };
 
   const processFiles = async (files: File[]) => {
@@ -316,7 +308,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           onChange={handleFileInput}
           className="hidden"
           id="file-upload-compact"
-          accept=".pdf,.txt,.rtf"
+          accept=".pdf"
           ref={inputRef}
         />
         
@@ -362,7 +354,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           onChange={handleFileInput}
           className="hidden"
           id="file-upload"
-          accept=".pdf,.txt,.rtf"
+          accept=".pdf"
           ref={inputRef}
         />
         
@@ -397,7 +389,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
                 </label>
               </p>
               <p className="text-sm text-gray-500 mt-1">
-                Supports PDF, TXT, and RTF files only (max 10MB each)
+                Supports PDF files only (max 10MB each)
               </p>
             </div>
           </div>

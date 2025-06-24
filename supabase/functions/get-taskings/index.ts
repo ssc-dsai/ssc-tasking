@@ -123,23 +123,23 @@ serve(async (req: Request) => {
       
       // Get owned taskings
       let ownedQuery = supabaseClient
-        .from('taskings')
-        .select(`
-          *,
-          files (
-            id,
-            name,
-            file_size,
-            mime_type,
-            created_at
-          ),
-          briefings (
-            id,
-            title,
-            created_at
-          )
-        `)
-        .eq('user_id', user.id)
+      .from('taskings')
+      .select(`
+        *,
+        files (
+          id,
+          name,
+          file_size,
+          mime_type,
+          created_at
+        ),
+        briefings (
+          id,
+          title,
+          created_at
+        )
+      `)
+      .eq('user_id', user.id)
 
       // Get shared taskings - first get the shared tasking IDs, then fetch the taskings
       const { data: sharedTaskingIds, error: sharedIdsError } = await supabaseClient
@@ -188,10 +188,10 @@ serve(async (req: Request) => {
       }
 
       // Apply search filter to owned query if needed
-      if (search) {
+    if (search) {
         const searchFilter = `name.ilike.%${search}%,description.ilike.%${search}%`
         ownedQuery = ownedQuery.or(searchFilter)
-      }
+    }
 
             // Execute queries based on category filter
       let ownedTaskings = []
@@ -277,7 +277,7 @@ serve(async (req: Request) => {
 
     // If custom SQL worked, use those results
     console.log(`Found ${taskings.length} taskings via custom SQL`)
-    
+
     return new Response(
       JSON.stringify({
         data: taskings,

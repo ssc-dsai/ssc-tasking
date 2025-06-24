@@ -134,36 +134,36 @@ export const Sidebar: React.FC<SidebarProps> = ({
         ) : (
           // Actual taskings
           taskings.map((tasking) => (
-            <button
-              key={tasking.id}
-              onClick={() => onTaskingSelect(tasking.id)}
-              className={`w-full text-left px-3 py-2.5 rounded-lg transition-all duration-200 group ${
-                activeTasking === tasking.id
-                  ? 'bg-blue-50 text-blue-700 border border-blue-100'
-                  : 'hover:bg-slate-50 text-slate-700 border border-transparent'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Folder className={`w-4 h-4 flex-shrink-0 ${
-                  activeTasking === tasking.id ? 'text-blue-500' : 'text-slate-400 group-hover:text-slate-500'
-                }`} />
-                {!isCollapsed && (
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{tasking.name}</p>
-                    <div className="flex items-center justify-between mt-0.5 w-full">
-                      <span className={`text-xs font-medium rounded-full px-2 py-0.5 ${
-                        tasking.status === 'Complete'
-                          ? 'bg-slate-100 text-green-600'
-                          : 'bg-slate-100 text-yellow-600'
-                      }`}>
-                        {tasking.status}
-                      </span>
-                      <span className="text-[11px] text-slate-400 ml-2 whitespace-nowrap">{timeAgo(tasking.lastUpdated)}</span>
-                    </div>
+          <button
+            key={tasking.id}
+            onClick={() => onTaskingSelect(tasking.id)}
+            className={`w-full text-left px-3 py-2.5 rounded-lg transition-all duration-200 group ${
+              activeTasking === tasking.id
+                ? 'bg-blue-50 text-blue-700 border border-blue-100'
+                : 'hover:bg-slate-50 text-slate-700 border border-transparent'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <Folder className={`w-4 h-4 flex-shrink-0 ${
+                activeTasking === tasking.id ? 'text-blue-500' : 'text-slate-400 group-hover:text-slate-500'
+              }`} />
+              {!isCollapsed && (
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm truncate">{tasking.name}</p>
+                  <div className="flex items-center justify-between mt-0.5 w-full">
+                    <span className={`text-xs font-medium rounded-full px-2 py-0.5 ${
+                      tasking.status === 'Complete'
+                        ? 'bg-slate-100 text-green-600'
+                        : 'bg-slate-100 text-yellow-600'
+                    }`}>
+                      {tasking.status}
+                    </span>
+                    <span className="text-[11px] text-slate-400 ml-2 whitespace-nowrap">{timeAgo(tasking.lastUpdated)}</span>
                   </div>
-                )}
-              </div>
-            </button>
+                </div>
+              )}
+            </div>
+          </button>
           ))
         )}
       </div>

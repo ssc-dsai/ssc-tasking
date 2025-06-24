@@ -246,8 +246,8 @@ const Dashboard: React.FC = () => {
                   </Button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {taskings.map((tasking) => (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {taskings.map((tasking) => (
                   <div
                     key={tasking.id}
                     className="bg-white rounded-lg border border-slate-200 p-4 hover:shadow-md hover:border-slate-300 transition-all duration-200 cursor-pointer group"
@@ -286,9 +286,9 @@ const Dashboard: React.FC = () => {
                         <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                       </div>
                     </div>
-                    </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
+              </div>
               )}
 
               {!isLoading && !error && taskings.length === 0 && (

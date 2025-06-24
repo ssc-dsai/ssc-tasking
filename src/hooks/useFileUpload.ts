@@ -70,7 +70,7 @@ export const useFileUpload = (taskingId: string, options: UseFileUploadOptions =
         })
       }, 200)
 
-      try {        
+      try {
         const response = await fetch(uploadUrl, {
           method: 'POST',
           headers: {

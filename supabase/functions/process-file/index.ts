@@ -280,6 +280,7 @@ serve(async (req) => {
         file_path,
         file_size,
         mime_type,
+        tasking_id,
         taskings!inner(user_id)
       `)
       .eq('id', fileId)
@@ -292,8 +293,22 @@ serve(async (req) => {
       )
     }
 
-    // Check if user owns the file
-    if (fileRecord.taskings.user_id !== user.id) {
+    // Check if user has access to the file (owner or shared user)
+    const isOwner = fileRecord.taskings.user_id === user.id;
+    
+    let isSharedUser = false;
+    if (!isOwner) {
+      const { data: sharedTasking } = await supabase
+        .from('shared_taskings')
+        .select('id')
+        .eq('tasking_id', fileRecord.tasking_id)
+        .eq('user_id', user.id)
+        .single();
+      
+      isSharedUser = !!sharedTasking;
+    }
+    
+    if (!isOwner && !isSharedUser) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }}
@@ -327,11 +342,9 @@ serve(async (req) => {
       // Extract text based on file type
       if (fileRecord.mime_type === 'application/pdf') {
         extractedText = await extractTextFromPdf(fileBuffer);
-      } else if (fileRecord.mime_type === 'text/plain') {
-        extractedText = extractTextFromTxt(fileBuffer);
       } else {
         return new Response(
-          JSON.stringify({ error: 'Unsupported file type' }),
+          JSON.stringify({ error: 'Only PDF files are supported. Please upload a PDF file.' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }}
         )
       }

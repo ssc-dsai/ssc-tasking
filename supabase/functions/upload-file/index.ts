@@ -59,12 +59,12 @@ serve(async (req) => {
       )
     }
 
-    // Verify the tasking belongs to the user
+    // Verify the user has access to the tasking (owner or shared user)
+    // Let RLS policies handle access control
     const { data: tasking, error: taskingError } = await supabase
       .from('taskings')
       .select('id, user_id')
       .eq('id', taskingId)
-      .eq('user_id', user.id)
       .single()
 
     if (taskingError || !tasking) {
@@ -93,11 +93,41 @@ serve(async (req) => {
       )
     }
 
+    // Validate file type - only accept PDF files
+    const fileType = file.type.toLowerCase();
+    const fileNameLower = file.name.toLowerCase();
+    
+    if (fileType !== 'application/pdf' && !fileNameLower.endsWith('.pdf')) {
+      console.log('❌ [Upload File] Invalid file type:', fileType, 'for file:', file.name)
+      return new Response(
+        JSON.stringify({ error: 'Only PDF files are supported. Please upload a PDF file.' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
+    }
+
     console.log('📁 [Upload File] Processing file:', file.name, 'Size:', file.size)
     console.log('📝 [Upload File] Has extracted text:', !!extractedText, extractedText ? `(${extractedText.length} chars)` : '')
 
-    // Generate a unique file path following the user_id/tasking_id/filename pattern (temporary)
-    const fileName = `${user.id}/${taskingId}/${Date.now()}_${file.name}`
+    // Sanitize filename to prevent InvalidKey errors
+    const sanitizeFilename = (filename: string): string => {
+      // Replace special characters and spaces with underscores
+      return filename
+        .replace(/[™®©]/g, '') // Remove trademark symbols
+        .replace(/[^\w\-_.]/g, '_') // Replace special chars with underscores
+        .replace(/_+/g, '_') // Replace multiple underscores with single
+        .replace(/^_|_$/g, '') // Remove leading/trailing underscores
+    }
+
+    const sanitizedFileName = sanitizeFilename(file.name)
+    console.log('📁 [Upload File] Original filename:', file.name)
+    console.log('📁 [Upload File] Sanitized filename:', sanitizedFileName)
+
+    // Generate a unique file path following the tasking_id/filename pattern
+    // This matches the storage policies that expect tasking_id as the first folder
+    const fileName = `${taskingId}/${Date.now()}_${sanitizedFileName}`
     console.log('📁 [Upload File] Generated file path:', fileName)
     
     // Upload file to Supabase Storage

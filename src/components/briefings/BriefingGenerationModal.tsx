@@ -166,13 +166,13 @@ IMPORTANT: Return ONLY the markdown content starting with the # header. Do not i
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white">
         <DialogHeader className="pb-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-white" />
-            </div>
-            <DialogTitle className="text-xl font-semibold text-gray-900">
-              Generate Briefing
-            </DialogTitle>
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-white" />
+              </div>
+              <DialogTitle className="text-xl font-semibold text-gray-900">
+                Generate Briefing
+              </DialogTitle>
           </div>
         </DialogHeader>
 

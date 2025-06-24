@@ -57,12 +57,12 @@ serve(async (req) => {
       );
     }
 
-    // Verify ownership of tasking
+    // Verify access to tasking (owner or shared user)
+    // First try to get the tasking - RLS policies will handle access control
     const { data: tasking, error: taskingError } = await supabase
       .from('taskings')
       .select('id')
       .eq('id', tasking_id)
-      .eq('user_id', user.id)
       .single();
 
     if (taskingError || !tasking) {
