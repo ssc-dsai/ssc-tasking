@@ -13,7 +13,7 @@ import { BriefingGenerationModal } from '../components/briefings/BriefingGenerat
 import { MarkdownBriefingDisplay } from '../components/briefings/MarkdownBriefingDisplay';
 import { ProjectCreationModal } from '../components/project/ProjectCreationModal';
 import { ShareTaskingModal } from '../components/project/ShareTaskingModal';
-import { Folder, Upload, FileText, Eye, Menu, X, Plus, Download, FileDown, Users, ChevronRight, ChevronDown, Expand, Share2 } from 'lucide-react';
+import { Folder, Upload, FileText, Eye, Menu, X, Plus, Download, FileDown, Users, ChevronRight, ChevronDown, Expand } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
@@ -838,17 +838,6 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
         {/* Top Header */}
         <TopHeader 
           title={currentTasking.name}
-          actions={
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsShareModalOpen(true)}
-              className="flex items-center space-x-1"
-            >
-              <Share2 className="w-4 h-4" />
-              <span>Share</span>
-            </Button>
-          }
         />
         
         <div className="flex-1 p-4 overflow-hidden">
