@@ -71,6 +71,8 @@ serve(async (req: Request) => {
         ct.*,
         COALESCE(file_counts.file_count, 0) as file_count,
         COALESCE(briefing_counts.briefing_count, 0) as briefing_count,
+        COALESCE(chat_counts.chat_count, 0) as chat_count,
+        COALESCE(user_counts.user_count, 1) as user_count,
         COALESCE(ct.updated_at, ct.created_at) as last_activity
       FROM combined_taskings ct
       LEFT JOIN (
@@ -83,6 +85,16 @@ serve(async (req: Request) => {
         FROM briefings 
         GROUP BY tasking_id
       ) briefing_counts ON ct.id = briefing_counts.tasking_id
+      LEFT JOIN (
+        SELECT tasking_id, COUNT(*) as chat_count 
+        FROM chat_messages 
+        GROUP BY tasking_id
+      ) chat_counts ON ct.id = chat_counts.tasking_id
+      LEFT JOIN (
+        SELECT tasking_id, COUNT(*) + 1 as user_count 
+        FROM shared_taskings 
+        GROUP BY tasking_id
+      ) user_counts ON ct.id = user_counts.tasking_id
     `
 
     // Add search filter if provided
@@ -112,10 +124,9 @@ serve(async (req: Request) => {
     console.log('Executing SQL query:', sqlQuery)
     console.log('With parameters:', params)
 
-    const { data: taskings, error } = await supabaseClient.rpc('exec_sql', {
-      query: sqlQuery,
-      params: params
-    })
+    // Disable custom SQL for now and use fallback approach
+    const error = true
+    const taskings = null
 
     // If custom SQL doesn't work, fall back to separate queries
     if (error || !taskings) {
@@ -136,6 +147,10 @@ serve(async (req: Request) => {
         briefings (
           id,
           title,
+          created_at
+        ),
+        chat_messages (
+          id,
           created_at
         )
       `)
@@ -175,6 +190,10 @@ serve(async (req: Request) => {
             briefings (
               id,
               title,
+              created_at
+            ),
+            chat_messages (
+              id,
               created_at
             )
           `)
@@ -229,22 +248,119 @@ serve(async (req: Request) => {
         }
       }
 
+      // Get user details for shared taskings
+      const taskingIds = [...ownedTaskings, ...sharedTaskings].map(t => t.id)
+      console.log('Fetching shared users for tasking IDs:', taskingIds)
+      
+      // Debug: Check what's in shared_taskings table first
+      const { data: rawSharedTaskings } = await supabaseClient
+        .from('shared_taskings')
+        .select('*')
+        .in('tasking_id', taskingIds)
+      console.log('Raw shared_taskings data:', rawSharedTaskings)
+      
+      // Get shared taskings entries
+      const { data: sharedTaskingsEntries, error: sharedTaskingsError } = await supabaseClient
+        .from('shared_taskings')
+        .select('tasking_id, user_id')
+        .in('tasking_id', taskingIds)
+      
+      if (sharedTaskingsError) {
+        console.error('Error fetching shared_taskings:', sharedTaskingsError)
+      }
+      console.log('Shared taskings entries:', sharedTaskingsEntries)
+      
+      // Get profiles for the shared users
+      const sharedUserIds = (sharedTaskingsEntries || []).map(st => st.user_id)
+      console.log('Shared user IDs:', sharedUserIds)
+      
+      // Also get owner user IDs
+      const ownerUserIds = [...ownedTaskings, ...sharedTaskings].map(t => t.user_id)
+      console.log('Owner user IDs:', ownerUserIds)
+      
+      // Combine all user IDs we need profiles for
+      const allUserIds = [...new Set([...sharedUserIds, ...ownerUserIds])]
+      console.log('All user IDs to fetch profiles for:', allUserIds)
+      
+      let profilesData = []
+      if (allUserIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabaseClient
+          .from('profiles')
+          .select('id, full_name, email')
+          .in('id', allUserIds)
+        
+        if (profilesError) {
+          console.error('Error fetching profiles:', profilesError)
+        }
+        profilesData = profiles || []
+      }
+      console.log('Profiles data:', profilesData)
+      
+      // Manually join the data
+      const sharedUsers = (sharedTaskingsEntries || []).map(st => ({
+        tasking_id: st.tasking_id,
+        profiles: profilesData.find(p => p.id === st.user_id)
+      })).filter(su => su.profiles) // Only include entries where we found the profile
+
+      // Group users by tasking ID
+      const usersByTasking = (sharedUsers || []).reduce((acc, su) => {
+        if (!acc[su.tasking_id]) {
+          acc[su.tasking_id] = []
+        }
+        acc[su.tasking_id].push(su.profiles)
+        return acc
+      }, {})
+      
+      console.log('Users grouped by tasking:', usersByTasking)
+
       // Combine and transform results
       const allTaskings = [
-        ...ownedTaskings.map(t => ({
-          ...t,
-          access_type: 'owner',
-          file_count: t.files?.length || 0,
-          briefing_count: t.briefings?.length || 0,
-          last_activity: t.updated_at || t.created_at,
-        })),
-        ...sharedTaskings.map(t => ({
-          ...t,
-          access_type: 'shared',
-          file_count: t.files?.length || 0,
-          briefing_count: t.briefings?.length || 0,
-          last_activity: t.updated_at || t.created_at,
-        }))
+        ...ownedTaskings.map(t => {
+          const ownerProfile = profilesData.find(p => p.id === t.user_id)
+          const transformed = {
+            ...t,
+            access_type: 'owner',
+            file_count: t.files?.length || 0,
+            briefing_count: t.briefings?.length || 0,
+            chat_count: t.chat_messages?.length || 0,
+            user_count: (usersByTasking[t.id]?.length || 0) + 1, // +1 for owner
+            users: usersByTasking[t.id] || [],
+            owner_profile: ownerProfile,
+            last_activity: t.updated_at || t.created_at,
+          };
+          console.log(`Transforming owned tasking ${t.name}:`, {
+            owner_profile: ownerProfile,
+            chat_messages_length: t.chat_messages?.length,
+            users_for_tasking: usersByTasking[t.id],
+            final_chat_count: transformed.chat_count,
+            final_user_count: transformed.user_count,
+            final_users: transformed.users
+          });
+          return transformed;
+        }),
+        ...sharedTaskings.map(t => {
+          const ownerProfile = profilesData.find(p => p.id === t.user_id)
+          const transformed = {
+            ...t,
+            access_type: 'shared',
+            file_count: t.files?.length || 0,
+            briefing_count: t.briefings?.length || 0,
+            chat_count: t.chat_messages?.length || 0,
+            user_count: (usersByTasking[t.id]?.length || 0) + 1, // +1 for owner
+            users: usersByTasking[t.id] || [],
+            owner_profile: ownerProfile,
+            last_activity: t.updated_at || t.created_at,
+          };
+          console.log(`Transforming shared tasking ${t.name}:`, {
+            owner_profile: ownerProfile,
+            chat_messages_length: t.chat_messages?.length,
+            users_for_tasking: usersByTasking[t.id],
+            final_chat_count: transformed.chat_count,
+            final_user_count: transformed.user_count,
+            final_users: transformed.users
+          });
+          return transformed;
+        })
       ]
 
       // Sort by updated_at and apply pagination

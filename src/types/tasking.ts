@@ -4,8 +4,20 @@ export interface Tasking {
   description: string;
   category: 'personal' | 'shared';
   fileCount: number;
+  briefingCount?: number;
+  chatCount?: number;
+  userCount?: number;
   status: string;
   createdAt: string;
   lastUpdated: string;
-  users: any[]; // We can type this more specifically when we add user support
+  users: Array<{
+    id: string;
+    full_name: string;
+    email: string;
+  }>;
+  ownerProfile?: {
+    id: string;
+    full_name: string;
+    email: string;
+  };
 } 

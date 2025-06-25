@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { useEffect, useState } from 'react';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import Login from "./pages/Login";
@@ -66,10 +67,11 @@ const App = () => {
   return (
     <>
       {DEV && <SupabaseTest />}
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <Routes>
+      <ThemeProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <Routes>
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
           
@@ -124,7 +126,8 @@ const App = () => {
           {/* 404 route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </TooltipProvider>
+        </TooltipProvider>
+      </ThemeProvider>
     </>
   );
 };

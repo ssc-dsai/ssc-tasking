@@ -803,7 +803,7 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
 
 
   return (
-    <div className="h-screen bg-slate-50 flex overflow-hidden">
+    <div className="h-screen bg-slate-50 dark:bg-slate-900 flex overflow-hidden">
       {/* Mobile menu button */}
       <div className="lg:hidden fixed top-4 left-4 z-50">
         <Button
@@ -848,7 +848,7 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                 <BreadcrumbItem>
                   <BreadcrumbLink 
                     href="/dashboard"
-                    className="text-slate-500 hover:text-slate-700"
+                    className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
                   >
                     Dashboard
                   </BreadcrumbLink>
@@ -857,7 +857,7 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                   <ChevronRight className="h-4 w-4" />
                 </BreadcrumbSeparator>
                 <BreadcrumbItem>
-                  <BreadcrumbPage className="text-slate-600">
+                  <BreadcrumbPage className="text-slate-600 dark:text-slate-300">
                     {currentTasking.name}
                   </BreadcrumbPage>
                 </BreadcrumbItem>
@@ -867,14 +867,14 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-200px)] overflow-hidden">
             {/* Briefings Display */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 overflow-hidden flex flex-col">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-4 overflow-hidden flex flex-col">
               {/* Header always visible */}
               <div className="flex items-center justify-between mb-4 flex-shrink-0">
                 <div className="flex items-center space-x-3">
                   <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
                     <FileText className="w-3 h-3 text-white" />
                   </div>
-                  <h2 className="text-lg font-semibold text-gray-900">Briefings</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Briefings</h2>
                   
                   {/* Briefing Selector */}
                   {savedBriefings.length > 1 && (
@@ -890,7 +890,7 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                           <SelectItem key={briefing.id} value={index.toString()}>
                             <div className="flex flex-col items-start">
                               <span className="font-medium text-sm">{briefing.title}</span>
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
                                 {getTimeAgo(briefing.created_at)}
                               </span>
                             </div>
@@ -921,14 +921,14 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
               {savedBriefings[selectedBriefingIndex] ? (
                 <div className="flex-1 overflow-hidden">
                   {/* Briefing Content Box */}
-                  <div className="h-full border border-gray-200 rounded-lg bg-gray-50">
+                  <div className="h-full border border-gray-200 dark:border-slate-600 rounded-lg bg-gray-50 dark:bg-slate-700">
                     {/* Briefing Box Header */}
-                    <div className="flex items-center justify-between px-4 py-3 bg-white rounded-t-lg border-b border-gray-200">
+                    <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-800 rounded-t-lg border-b border-gray-200 dark:border-slate-600">
                       <div className="flex-1 min-w-0 mr-4">
                         {(() => {
                           const { header } = extractFirstHeader(savedBriefings[selectedBriefingIndex].content);
                           return header ? (
-                            <h3 className="text-xl font-bold text-gray-900 truncate">
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white truncate">
                               {header}
                             </h3>
                           ) : null;
@@ -970,7 +970,7 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                       </div>
                     </div>
                     {/* Briefing Content */}
-                    <div className="p-4 h-[calc(100%-60px)] overflow-y-auto bg-white rounded-b-lg">
+                    <div className="p-4 h-[calc(100%-60px)] overflow-y-auto bg-white dark:bg-slate-800 rounded-b-lg">
                       <MarkdownBriefingDisplay 
                         briefing={{
                           title: savedBriefings[selectedBriefingIndex].title,
@@ -986,14 +986,14 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
               ) : markdownBriefing ? (
                 <div className="flex-1 overflow-hidden">
                   {/* Briefing Content Box */}
-                  <div className="h-full border border-gray-200 rounded-lg bg-gray-50">
+                  <div className="h-full border border-gray-200 dark:border-slate-600 rounded-lg bg-gray-50 dark:bg-slate-700">
                     {/* Briefing Box Header */}
-                    <div className="flex items-center justify-between px-4 py-3 bg-white rounded-t-lg border-b border-gray-200">
+                    <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-800 rounded-t-lg border-b border-gray-200 dark:border-slate-600">
                       <div className="flex-1 min-w-0 mr-4">
                         {(() => {
                           const { header } = extractFirstHeader(markdownBriefing.content);
                           return header ? (
-                            <h3 className="text-xl font-bold text-gray-900 truncate">
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white truncate">
                               {header}
                             </h3>
                           ) : null;
@@ -1035,7 +1035,7 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                       </div>
                     </div>
                     {/* Briefing Content */}
-                    <div className="p-4 h-[calc(100%-60px)] overflow-y-auto bg-white rounded-b-lg">
+                    <div className="p-4 h-[calc(100%-60px)] overflow-y-auto bg-white dark:bg-slate-800 rounded-b-lg">
                       <MarkdownBriefingDisplay 
                         briefing={{
                           ...markdownBriefing,
@@ -1049,9 +1049,9 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
               ) : generatedBriefing ? (
                 <div className="flex-1 overflow-hidden">
                   {/* Briefing Content Box */}
-                  <div className="h-full border border-gray-200 rounded-lg bg-gray-50">
+                  <div className="h-full border border-gray-200 dark:border-slate-600 rounded-lg bg-gray-50 dark:bg-slate-700">
                     {/* Briefing Box Header */}
-                    <div className="flex items-center justify-between px-4 py-3 bg-white rounded-t-lg border-b border-gray-200">
+                    <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-800 rounded-t-lg border-b border-gray-200 dark:border-slate-600">
                       <div className="flex-1 min-w-0 mr-4">
                         {/* No header extraction for legacy generatedBriefing */}
                       </div>
@@ -1091,7 +1091,7 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                       </div>
                     </div>
                     {/* Briefing Content */}
-                    <div className="p-4 h-[calc(100%-60px)] overflow-y-auto bg-white rounded-b-lg">
+                    <div className="p-4 h-[calc(100%-60px)] overflow-y-auto bg-white dark:bg-slate-800 rounded-b-lg">
                       <BriefingDisplay 
                         briefing={generatedBriefing} 
                         markdownView={isMarkdownView} 
@@ -1101,15 +1101,15 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                   </div>
                 </div>
               ) : (
-                <div className="flex-1 bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center">
+                <div className="flex-1 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-slate-800 dark:to-slate-700 rounded-xl border-2 border-dashed border-gray-300 dark:border-slate-600 flex items-center justify-center">
                   <div className="text-center p-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-xl flex items-center justify-center mx-auto mb-4">
-                      <FileText className="w-8 h-8 text-gray-400" />
+                    <div className="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-slate-600 dark:to-slate-500 rounded-xl flex items-center justify-center mx-auto mb-4">
+                      <FileText className="w-8 h-8 text-gray-400 dark:text-slate-400" />
                     </div>
-                    <p className="text-gray-600 mb-2">
+                    <p className="text-gray-600 dark:text-slate-300 mb-2">
                       {isRealTasking ? 'No briefings found for this tasking' : 'No briefing generated yet'}
                     </p>
-                    <p className="text-gray-500 text-sm mb-4">
+                    <p className="text-gray-500 dark:text-slate-400 text-sm mb-4">
                       {hasFiles 
                         ? 'Click "Generate" to create your first briefing' 
                         : 'Upload PDF or TXT files first, then generate a briefing'
@@ -1129,7 +1129,7 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
              </div>
 
             {/* Chat History and Assistant */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col overflow-hidden">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-4 flex flex-col overflow-hidden">
               <CompactBriefingChat
                 onGenerate={handleGenerateBriefing}
                 isGenerating={isGenerating || isSearching}
@@ -1139,14 +1139,14 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
             </div>
 
             {/* Files - Minimum 30% height */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col overflow-hidden min-h-[30vh]">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-4 flex flex-col overflow-hidden min-h-[30vh]">
               <div className="flex items-center justify-between mb-4 flex-shrink-0">
                 <div className="flex items-center space-x-3">
                   <div className="w-6 h-6 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
                     <Upload className="w-3 h-3 text-white" />
                   </div>
-                  <h2 className="text-lg font-semibold text-gray-900">Files</h2>
-                  <div className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Files</h2>
+                  <div className="bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 text-xs px-2 py-1 rounded-full">
                     {files.length} files
                   </div>
                 </div>
@@ -1184,13 +1184,13 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
               
               <div className="flex-1 overflow-hidden">
                 {files.length === 0 ? (
-                  <div className="flex-1 bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center h-full">
+                  <div className="flex-1 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-slate-800 dark:to-slate-700 rounded-xl border-2 border-dashed border-gray-300 dark:border-slate-600 flex items-center justify-center h-full">
                     <div className="text-center p-4">
-                      <div className="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-xl flex items-center justify-center mx-auto mb-4">
-                        <Upload className="w-8 h-8 text-gray-400" />
+                      <div className="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-slate-600 dark:to-slate-500 rounded-xl flex items-center justify-center mx-auto mb-4">
+                        <Upload className="w-8 h-8 text-gray-400 dark:text-slate-400" />
                       </div>
-                      <p className="text-gray-600 mb-2">No files uploaded yet</p>
-                      <p className="text-gray-500 text-sm">Use the "Upload Files" button in the header to add PDF or TXT files</p>
+                      <p className="text-gray-600 dark:text-slate-300 mb-2">No files uploaded yet</p>
+                      <p className="text-gray-500 dark:text-slate-400 text-sm">Use the "Upload Files" button in the header to add PDF or TXT files</p>
                     </div>
                   </div>
                 ) : (
@@ -1200,13 +1200,13 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
             </div>
 
             {/* Users - Minimum 30% height */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col overflow-hidden min-h-[30vh]">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-4 flex flex-col overflow-hidden min-h-[30vh]">
               <div className="flex items-center justify-between mb-4 flex-shrink-0">
                 <div className="flex items-center space-x-3">
                   <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
                     <Users className="w-3 h-3 text-white" />
                   </div>
-                  <h2 className="text-lg font-semibold text-gray-900">Users</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Users</h2>
                 </div>
 
                 <div className="flex items-center space-x-2">

@@ -104,8 +104,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <div className="mb-6">
       {!isCollapsed && (
         <div className="flex items-center gap-2 px-3 mb-2">
-          <div className="text-slate-400">{icon}</div>
-          <h3 className="text-xs font-medium text-slate-500 uppercase tracking-wider">{title}</h3>
+          <div className="text-slate-400 dark:text-slate-500">{icon}</div>
+          <h3 className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">{title}</h3>
         </div>
       )}
       <div className="space-y-1">
@@ -114,11 +114,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
           Array.from({ length: 3 }).map((_, index) => (
             <div key={index} className="px-3 py-2.5">
               <div className="flex items-center gap-3">
-                <div className="w-4 h-4 bg-slate-200 rounded animate-pulse flex-shrink-0" />
+                <div className="w-4 h-4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse flex-shrink-0" />
                 {!isCollapsed && (
                   <div className="flex-1 min-w-0">
-                    <div className="h-4 bg-slate-200 rounded animate-pulse mb-1" />
-                    <div className="h-3 bg-slate-100 rounded animate-pulse w-2/3" />
+                    <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse mb-1" />
+                    <div className="h-3 bg-slate-100 dark:bg-slate-600 rounded animate-pulse w-2/3" />
                   </div>
                 )}
               </div>
@@ -128,7 +128,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           // Empty state
           !isCollapsed && (
             <div className="px-3 py-4 text-center">
-              <p className="text-xs text-slate-400">No {title.toLowerCase()} taskings</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500">No {title.toLowerCase()} taskings</p>
             </div>
           )
         ) : (
@@ -139,13 +139,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={() => onTaskingSelect(tasking.id)}
             className={`w-full text-left px-3 py-2.5 rounded-lg transition-all duration-200 group ${
               activeTasking === tasking.id
-                ? 'bg-blue-50 text-blue-700 border border-blue-100'
-                : 'hover:bg-slate-50 text-slate-700 border border-transparent'
+                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-100 dark:border-blue-800'
+                : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-transparent'
             }`}
           >
             <div className="flex items-center gap-3">
               <Folder className={`w-4 h-4 flex-shrink-0 ${
-                activeTasking === tasking.id ? 'text-blue-500' : 'text-slate-400 group-hover:text-slate-500'
+                activeTasking === tasking.id ? 'text-blue-500 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-500 dark:group-hover:text-slate-400'
               }`} />
               {!isCollapsed && (
                 <div className="flex-1 min-w-0">
@@ -153,12 +153,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <div className="flex items-center justify-between mt-0.5 w-full">
                     <span className={`text-xs font-medium rounded-full px-2 py-0.5 ${
                       tasking.status === 'Complete'
-                        ? 'bg-slate-100 text-green-600'
-                        : 'bg-slate-100 text-yellow-600'
+                        ? 'bg-slate-100 dark:bg-slate-700 text-green-600 dark:text-green-400'
+                        : 'bg-slate-100 dark:bg-slate-700 text-yellow-600 dark:text-yellow-400'
                     }`}>
                       {tasking.status}
                     </span>
-                    <span className="text-[11px] text-slate-400 ml-2 whitespace-nowrap">{timeAgo(tasking.lastUpdated)}</span>
+                    <span className="text-[11px] text-slate-400 dark:text-slate-500 ml-2 whitespace-nowrap">{timeAgo(tasking.lastUpdated)}</span>
                   </div>
                 </div>
               )}
@@ -171,11 +171,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   );
 
   return (
-    <nav className={`bg-white border-r border-slate-200 transition-all duration-300 ${
+    <nav className={`bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 transition-all duration-300 ${
       isCollapsed ? 'w-16' : 'w-64'
     } flex flex-col h-full fixed lg:relative z-40 lg:z-auto shadow-sm`}>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-slate-100">
+      <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800">
         {!isCollapsed && (
           <button 
             onClick={handleLogoClick}
@@ -186,7 +186,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               alt="SSC Tasking" 
               className="w-8 h-8 rounded-lg"
             />
-            <span className="text-lg font-semibold text-slate-900">SSC Tasking</span>
+            <span className="text-lg font-semibold text-slate-900 dark:text-white">SSC Tasking</span>
           </button>
         )}
         {isCollapsed && (
@@ -205,7 +205,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           variant="ghost"
           size="icon"
           onClick={onToggle}
-          className="hidden lg:flex h-8 w-8 text-slate-400 hover:text-slate-600"
+          className="hidden lg:flex h-8 w-8 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-400"
         >
           {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </Button>
@@ -233,29 +233,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* User Profile Section */}
       {user && (
-        <div className="border-t border-slate-100 p-4">
+        <div className="border-t border-slate-100 dark:border-slate-800 p-4">
           {!isCollapsed ? (
             /* Expanded User Section with Dropdown */
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="w-full justify-start px-2 py-2 h-auto hover:bg-slate-50"
+                  className="w-full justify-start px-2 py-2 h-auto hover:bg-slate-50 dark:hover:bg-slate-800"
                 >
                   <div className="flex items-center gap-3 w-full">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={user.user_metadata?.avatar_url} />
-                      <AvatarFallback className="bg-blue-100 text-blue-700 text-sm font-medium">
+                      <AvatarFallback className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 text-sm font-medium">
                         {initials}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0 text-left">
-                      <p className="text-sm font-medium text-slate-900 truncate">
+                      <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
                         {displayName}
                       </p>
-                      <p className="text-xs text-slate-500 truncate">{user.email}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
                     </div>
-                    <ChevronDown className="h-4 w-4 text-slate-400" />
+                    <ChevronDown className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                   </div>
                 </Button>
               </DropdownMenuTrigger>
@@ -280,7 +280,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <DropdownMenuSeparator />
                 
                 <DropdownMenuItem 
-                  className="cursor-pointer text-red-600 focus:text-red-600"
+                  className="cursor-pointer text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400"
                   onClick={handleSignOut}
                 >
                   <LogOut className="mr-2 h-4 w-4" />
@@ -293,10 +293,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="flex justify-center">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="hover:bg-slate-50">
+                  <Button variant="ghost" size="icon" className="hover:bg-slate-50 dark:hover:bg-slate-800">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={user.user_metadata?.avatar_url} />
-                      <AvatarFallback className="bg-blue-100 text-blue-700 text-sm font-medium">
+                      <AvatarFallback className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 text-sm font-medium">
                         {initials}
                       </AvatarFallback>
                     </Avatar>
@@ -323,7 +323,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <DropdownMenuSeparator />
                   
                   <DropdownMenuItem 
-                    className="cursor-pointer text-red-600 focus:text-red-600"
+                    className="cursor-pointer text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400"
                     onClick={handleSignOut}
                   >
                     <LogOut className="mr-2 h-4 w-4" />

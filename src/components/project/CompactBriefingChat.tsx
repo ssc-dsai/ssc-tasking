@@ -42,13 +42,13 @@ export const CompactBriefingChat: React.FC<CompactBriefingChatProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm rounded-xl flex flex-col h-full max-h-full">
+    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm rounded-xl flex flex-col h-full max-h-full">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center space-x-2">
           <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
             <MessageSquare className="w-3 h-3 text-white" />
           </div>
-          <h2 className="text-lg font-semibold text-gray-900">Chat</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Chat</h2>
         </div>
         {onOpenModal && (
           <Button variant="ghost" size="sm" onClick={onOpenModal}>
@@ -67,10 +67,10 @@ export const CompactBriefingChat: React.FC<CompactBriefingChatProps> = ({
                   <div className={`max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg px-3 py-2 rounded-lg text-sm ${
                     message.type === 'user' 
                       ? 'bg-blue-500 text-white' 
-                      : 'bg-gray-100 text-gray-900'
+                      : 'bg-gray-100 dark:bg-slate-700 text-gray-900 dark:text-white'
                   }`}>
                     <div className="whitespace-pre-wrap">{message.content}</div>
-                    <p className={`text-xs mt-1 ${message.type === 'user' ? 'text-blue-100' : 'text-gray-500'}`}>
+                    <p className={`text-xs mt-1 ${message.type === 'user' ? 'text-blue-100' : 'text-gray-500 dark:text-slate-400'}`}>
                       {message.timestamp}
                     </p>
                   </div>
@@ -79,7 +79,7 @@ export const CompactBriefingChat: React.FC<CompactBriefingChatProps> = ({
               <div ref={messagesEndRef} />
             </div>
           ) : (
-            <div className="flex items-center justify-center h-full text-gray-500 text-sm">
+            <div className="flex items-center justify-center h-full text-gray-500 dark:text-slate-400 text-sm">
               No chat messages yet
             </div>
           )}
@@ -91,12 +91,12 @@ export const CompactBriefingChat: React.FC<CompactBriefingChatProps> = ({
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="Ask me anything about your documents..."
-            className="min-h-[80px] resize-none text-sm border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="min-h-[80px] resize-none text-sm border border-gray-300 dark:border-slate-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:bg-slate-700 dark:text-white dark:placeholder-slate-400"
             disabled={isGenerating}
           />
           
           <div className="flex items-center justify-between">
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-gray-500 dark:text-slate-400">
               {!hasFiles && "Upload files to chat"}
               {hasFiles && !prompt.trim() && "Type your message"}
               {hasFiles && prompt.trim() && "Ready to send"}
