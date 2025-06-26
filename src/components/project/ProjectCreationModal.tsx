@@ -78,10 +78,10 @@ export const ProjectCreationModal: React.FC<ProjectCreationModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white border-slate-200">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
         <DialogHeader className="pb-4">
-          <DialogTitle className="text-xl font-semibold text-slate-900">Create New Tasking</DialogTitle>
-          <DialogDescription className="text-slate-600">
+          <DialogTitle className="text-xl font-semibold text-slate-900 dark:text-white">Create New Tasking</DialogTitle>
+          <DialogDescription className="text-slate-600 dark:text-slate-400">
             Set up a new tasking to organize your work and generate AI-powered briefing notes.
           </DialogDescription>
         </DialogHeader>
@@ -90,7 +90,7 @@ export const ProjectCreationModal: React.FC<ProjectCreationModalProps> = ({
           {/* Project Details */}
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="project-name" className="text-sm font-medium text-slate-700">
+              <Label htmlFor="project-name" className="text-sm font-medium text-slate-700 dark:text-slate-300">
                 Tasking Name *
               </Label>
               <Input
@@ -98,13 +98,13 @@ export const ProjectCreationModal: React.FC<ProjectCreationModalProps> = ({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter tasking name..."
-                className="border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                className="border-slate-200 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder-slate-400 dark:focus:border-blue-400 dark:focus:ring-blue-400"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="project-description" className="text-sm font-medium text-slate-700">
+              <Label htmlFor="project-description" className="text-sm font-medium text-slate-700 dark:text-slate-300">
                 Description
               </Label>
               <Textarea
@@ -112,18 +112,18 @@ export const ProjectCreationModal: React.FC<ProjectCreationModalProps> = ({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Describe what this tasking is about..."
-                className="min-h-[100px] resize-none border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                className="min-h-[100px] resize-none border-slate-200 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder-slate-400 dark:focus:border-blue-400 dark:focus:ring-blue-400"
               />
             </div>
           </div>
 
           {/* Actions */}
-          <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-6 border-t border-slate-200">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-6 border-t border-slate-200 dark:border-slate-600">
             <Button 
               type="button" 
               variant="outline" 
               onClick={onClose}
-              className="border-slate-200 text-slate-700 hover:bg-slate-50"
+              className="border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
               disabled={isSubmitting}
             >
               Cancel

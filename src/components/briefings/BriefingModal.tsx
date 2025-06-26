@@ -66,28 +66,28 @@ export const BriefingModal: React.FC<BriefingModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-6xl h-[90vh] p-0 flex flex-col gap-0">
+        <DialogContent className="max-w-6xl h-[90vh] p-0 flex flex-col gap-0 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
           {/* Fixed Header - matching TaskingView style */}
-          <DialogHeader className="px-4 py-3 border-b border-gray-200 bg-white flex-shrink-0">
+          <DialogHeader className="px-4 py-3 border-b border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 flex-shrink-0">
           <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0 mr-4">
                 {briefing.content ? (() => {
                   const { header } = extractFirstHeader(briefing.content);
                   return header ? (
-                    <DialogTitle className="text-xl font-bold text-gray-900 truncate">
+                    <DialogTitle className="text-xl font-bold text-gray-900 dark:text-white truncate">
                       {header}
                     </DialogTitle>
                   ) : (
-                    <DialogTitle className="text-xl font-bold text-gray-900 truncate">
+                    <DialogTitle className="text-xl font-bold text-gray-900 dark:text-white truncate">
                       {briefing.title}
                     </DialogTitle>
                   );
                 })() : (
-                  <DialogTitle className="text-xl font-bold text-gray-900 truncate">
+                  <DialogTitle className="text-xl font-bold text-gray-900 dark:text-white truncate">
               {briefing.title}
             </DialogTitle>
                 )}
-                <div className="flex items-center space-x-1 text-xs text-gray-500 mt-1">
+                <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-slate-400 mt-1">
                   <span>Created {new Date(briefing.createdAt).toLocaleDateString('en-US', { 
                     year: 'numeric', 
                     month: 'short', 
@@ -106,7 +106,7 @@ export const BriefingModal: React.FC<BriefingModalProps> = ({
                     size="sm"
                     onClick={() => setIsMarkdownView(!isMarkdownView)}
                     title={isMarkdownView ? 'Switch to Card View' : 'Switch to Markdown View'}
-                    className="h-8 w-8 p-0"
+                    className="h-8 w-8 p-0 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
                   >
                     <Eye className="w-4 h-4" />
                   </Button>
@@ -119,7 +119,7 @@ export const BriefingModal: React.FC<BriefingModalProps> = ({
                   size="sm"
                   onClick={onDownload}
                     title="Download Briefing"
-                    className="h-8 w-8 p-0"
+                    className="h-8 w-8 p-0 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
                 >
                     <Download className="w-4 h-4" />
                 </Button>
@@ -129,7 +129,7 @@ export const BriefingModal: React.FC<BriefingModalProps> = ({
         </DialogHeader>
         
           {/* Content Area with no extra spacing */}
-          <div className="flex-1 overflow-hidden bg-white">
+          <div className="flex-1 overflow-hidden bg-white dark:bg-slate-800">
             <div className="h-full overflow-y-auto px-4 py-4">
           {briefing.content ? (
             <MarkdownBriefingDisplay 

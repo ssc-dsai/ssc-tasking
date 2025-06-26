@@ -119,13 +119,13 @@ export const ShareTaskingModal: React.FC<ShareTaskingModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
         <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
+          <DialogTitle className="flex items-center space-x-2 text-gray-900 dark:text-white">
             <Users className="w-5 h-5" />
             <span>Share "{taskingName}"</span>
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-slate-600 dark:text-slate-400">
             Add people to collaborate on this tasking. You can remove access at any time.
           </DialogDescription>
         </DialogHeader>
@@ -133,41 +133,41 @@ export const ShareTaskingModal: React.FC<ShareTaskingModalProps> = ({
         <div className="space-y-6">
           {/* Add User Section */}
           <div className="space-y-4">
-            <h3 className="text-sm font-medium text-gray-900">Add People</h3>
+            <h3 className="text-sm font-medium text-gray-900 dark:text-white">Add People</h3>
             
             {/* Search Input */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-slate-400 w-4 h-4" />
               <Input
                 placeholder="Search by name or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder-slate-400"
               />
             </div>
 
             {/* Search Results */}
             {searchTerm.length >= 2 && (
-              <div className="border rounded-lg max-h-48 overflow-y-auto">
+              <div className="border border-gray-200 dark:border-slate-600 rounded-lg max-h-48 overflow-y-auto bg-white dark:bg-slate-700">
                 {isSearching ? (
-                  <div className="p-4 text-center text-gray-500">
+                  <div className="p-4 text-center text-gray-500 dark:text-slate-400">
                     <div className="animate-spin w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-2"></div>
                     Searching...
                   </div>
                 ) : users.length > 0 ? (
-                  <div className="divide-y">
+                  <div className="divide-y divide-gray-200 dark:divide-slate-600">
                     {users.map((user) => (
-                      <div key={user.id} className="p-3 flex items-center justify-between hover:bg-gray-50">
+                      <div key={user.id} className="p-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-slate-600">
                         <div className="flex items-center space-x-3">
                           <Avatar className="w-8 h-8">
                             <AvatarImage src={user.avatar_url} />
-                            <AvatarFallback className="text-xs">
+                            <AvatarFallback className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
                               {getUserInitials(user.full_name, user.email)}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <div className="text-sm font-medium">{user.display_name}</div>
-                            <div className="text-xs text-gray-500">{user.email}</div>
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">{user.display_name}</div>
+                            <div className="text-xs text-gray-500 dark:text-slate-400">{user.email}</div>
                           </div>
                         </div>
                         <Button
@@ -183,7 +183,7 @@ export const ShareTaskingModal: React.FC<ShareTaskingModalProps> = ({
                     ))}
                   </div>
                 ) : (
-                  <div className="p-4 text-center text-gray-500">
+                  <div className="p-4 text-center text-gray-500 dark:text-slate-400">
                     No users found
                   </div>
                 )}
@@ -193,29 +193,29 @@ export const ShareTaskingModal: React.FC<ShareTaskingModalProps> = ({
 
           {/* Current Shared Users */}
           <div className="space-y-4">
-            <h3 className="text-sm font-medium text-gray-900">
+            <h3 className="text-sm font-medium text-gray-900 dark:text-white">
               People with access ({isLoadingSharedUsers ? '...' : sharedUsers.length})
             </h3>
             
             {isLoadingSharedUsers ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-gray-500 dark:text-slate-400">
                 <div className="animate-spin w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-2"></div>
                 <p className="text-sm">Loading shared users...</p>
               </div>
             ) : sharedUsers.length > 0 ? (
               <div className="space-y-2">
                 {sharedUsers.map((user) => (
-                  <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div key={user.id} className="flex items-center justify-between p-3 border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700">
                     <div className="flex items-center space-x-3">
                       <Avatar className="w-8 h-8">
                         <AvatarImage src={user.avatar_url} />
-                        <AvatarFallback className="text-xs">
+                        <AvatarFallback className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
                           {getUserInitials(user.full_name, user.email)}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <div className="text-sm font-medium">{user.full_name || user.email}</div>
-                        <div className="text-xs text-gray-500">{user.email}</div>
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">{user.full_name || user.email}</div>
+                        <div className="text-xs text-gray-500 dark:text-slate-400">{user.email}</div>
                       </div>
                     </div>
                     
@@ -224,7 +224,7 @@ export const ShareTaskingModal: React.FC<ShareTaskingModalProps> = ({
                       size="sm"
                       onClick={() => handleRemoveUser(user.id, user.email)}
                       disabled={isSharing}
-                      className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20"
                     >
                       <Trash2 className="w-3 h-3" />
                     </Button>
@@ -232,8 +232,8 @@ export const ShareTaskingModal: React.FC<ShareTaskingModalProps> = ({
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-500">
-                <Users className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+              <div className="text-center py-8 text-gray-500 dark:text-slate-400">
+                <Users className="w-12 h-12 mx-auto mb-2 text-gray-300 dark:text-slate-600" />
                 <p>No users have been shared with yet</p>
                 <p className="text-xs">Search above to add people</p>
               </div>

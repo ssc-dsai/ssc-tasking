@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { User, Settings, LogOut, ChevronDown } from 'lucide-react'
+import { LogOut, ChevronDown } from 'lucide-react'
 
 const UserProfile: React.FC = () => {
   const { user, signOut } = useAuth()
@@ -81,24 +81,6 @@ const UserProfile: React.FC = () => {
             <p className="text-xs leading-none text-slate-500 dark:text-slate-400">{user.email}</p>
           </div>
         </DropdownMenuLabel>
-        
-        <DropdownMenuSeparator />
-        
-        <DropdownMenuItem 
-          className="cursor-pointer"
-          onClick={() => navigate('/profile')}
-        >
-          <User className="mr-2 h-4 w-4" />
-          <span>Profile</span>
-        </DropdownMenuItem>
-        
-        <DropdownMenuItem 
-          className="cursor-pointer"
-          onClick={() => navigate('/settings')}
-        >
-          <Settings className="mr-2 h-4 w-4" />
-          <span>Settings</span>
-        </DropdownMenuItem>
         
         <DropdownMenuSeparator />
         

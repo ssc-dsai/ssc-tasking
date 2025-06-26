@@ -164,13 +164,13 @@ IMPORTANT: Return ONLY the markdown content starting with the # header. Do not i
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
         <DialogHeader className="pb-4">
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center">
                 <Sparkles className="w-4 h-4 text-white" />
               </div>
-              <DialogTitle className="text-xl font-semibold text-gray-900">
+              <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-white">
                 Generate Briefing
               </DialogTitle>
           </div>
@@ -179,7 +179,7 @@ IMPORTANT: Return ONLY the markdown content starting with the # header. Do not i
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Title Input */}
           <div className="space-y-2">
-            <Label htmlFor="briefing-title" className="text-sm font-medium text-gray-700">
+            <Label htmlFor="briefing-title" className="text-sm font-medium text-gray-700 dark:text-slate-300">
               Briefing Title
             </Label>
             <Input
@@ -187,14 +187,14 @@ IMPORTANT: Return ONLY the markdown content starting with the # header. Do not i
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g., AI Initiative Performance Summary, Data Platform ROI Analysis, Automation Program Status Update..."
-              className="w-full"
+              className="w-full dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder-slate-400"
               disabled={isGenerating}
             />
           </div>
 
           {/* Prompt Input */}
           <div className="space-y-2">
-            <Label htmlFor="briefing-prompt" className="text-sm font-medium text-gray-700">
+            <Label htmlFor="briefing-prompt" className="text-sm font-medium text-gray-700 dark:text-slate-300">
               Briefing Requirements
             </Label>
             <Textarea
@@ -202,7 +202,7 @@ IMPORTANT: Return ONLY the markdown content starting with the # header. Do not i
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               placeholder="Describe what you want in your briefing. Focus on performance metrics, efficiency analysis, governance issues, or strategic recommendations needed for leadership review..."
-              className="min-h-[120px] resize-none"
+              className="min-h-[120px] resize-none dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder-slate-400"
               disabled={isGenerating}
             />
           </div>
@@ -210,7 +210,7 @@ IMPORTANT: Return ONLY the markdown content starting with the # header. Do not i
           {/* Sample Prompts */}
           {prompt.length === 0 && (
             <div className="space-y-3">
-              <Label className="text-sm font-medium text-gray-700">
+              <Label className="text-sm font-medium text-gray-700 dark:text-slate-300">
                 Sample Briefing Types
               </Label>
               <div className="grid grid-cols-1 gap-2">
@@ -219,12 +219,12 @@ IMPORTANT: Return ONLY the markdown content starting with the # header. Do not i
                     key={index}
                     type="button"
                     onClick={() => handleSamplePromptClick(sample)}
-                    className="text-left p-3 text-sm bg-gray-50 hover:bg-gray-100 rounded-lg border transition-colors"
+                    className="text-left p-3 text-sm bg-gray-50 hover:bg-gray-100 dark:bg-slate-700 dark:hover:bg-slate-600 rounded-lg border border-gray-200 dark:border-slate-600 transition-colors"
                     disabled={isGenerating}
                   >
                     <div className="flex items-start space-x-2">
-                      <FileText className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">"{sample}"</span>
+                      <FileText className="w-4 h-4 text-gray-400 dark:text-slate-400 mt-0.5 flex-shrink-0" />
+                      <span className="text-gray-700 dark:text-slate-300">"{sample}"</span>
                     </div>
                   </button>
                 ))}
@@ -234,25 +234,26 @@ IMPORTANT: Return ONLY the markdown content starting with the # header. Do not i
 
           {/* Status */}
           <div className="flex items-center justify-between text-sm">
-            <div className="text-gray-500">
-              {saveError && <span className="text-red-600">Save error: {saveError}</span>}
+            <div className="text-gray-500 dark:text-slate-400">
+              {saveError && <span className="text-red-600 dark:text-red-400">Save error: {saveError}</span>}
               {!saveError && !hasFiles && "Upload files before generating a briefing"}
               {!saveError && hasFiles && !title.trim() && "Enter a briefing title"}
               {!saveError && hasFiles && title.trim() && !prompt.trim() && "Describe your briefing requirements"}
               {!saveError && hasFiles && title.trim() && prompt.trim() && "Ready to generate briefing"}
             </div>
-            <div className="text-gray-400">
+            <div className="text-gray-400 dark:text-slate-500">
               Powered by AI + Vector Search
             </div>
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-end space-x-3 pt-4 border-t">
+          <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-slate-600">
             <Button
               type="button"
               variant="outline"
               onClick={handleClose}
               disabled={isGenerating}
+              className="dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
             >
               Cancel
             </Button>

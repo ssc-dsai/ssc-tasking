@@ -786,15 +786,15 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
   if (isRealTasking) {
     if (isLoadingReal || !realTaskingData) {
       return (
-        <div className="h-screen flex items-center justify-center bg-slate-50">
-          <span className="text-sm text-slate-600">Loading tasking...</span>
+        <div className="h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+          <span className="text-sm text-slate-600 dark:text-slate-400">Loading tasking...</span>
         </div>
       );
     }
     if (realError) {
       return (
-        <div className="h-screen flex items-center justify-center bg-slate-50">
-          <span className="text-sm text-red-600">Failed to load tasking: {String(realError)}</span>
+        <div className="h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+          <span className="text-sm text-red-600 dark:text-red-400">Failed to load tasking: {String(realError)}</span>
         </div>
       );
     }
