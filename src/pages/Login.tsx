@@ -92,17 +92,17 @@ const Login: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600">Loading...</p>
+          <p className="text-slate-600 dark:text-slate-400">Loading...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 px-4">
       <div className="w-full max-w-md">
         {/* Logo/Header */}
         <div className="text-center mb-8">
@@ -111,28 +111,28 @@ const Login: React.FC = () => {
             alt="SSC Tasking" 
             className="w-12 h-12 mx-auto mb-4 rounded-lg"
           />
-          <h1 className="text-2xl font-bold text-slate-900">SSC Tasking</h1>
-          <p className="text-slate-600 mt-2">Generate AI-powered briefing notes</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">SSC Tasking</h1>
+          <p className="text-slate-600 dark:text-slate-400 mt-2">Generate AI-powered briefing notes</p>
         </div>
 
-        <Card className="border-slate-200 shadow-sm">
+        <Card className="border-slate-200 dark:border-slate-700 shadow-sm dark:bg-slate-800">
           <CardHeader className="text-center pb-4">
-            <CardTitle className="text-xl font-semibold text-slate-900">Welcome</CardTitle>
-            <CardDescription className="text-slate-600">
+            <CardTitle className="text-xl font-semibold text-slate-900 dark:text-white">Welcome</CardTitle>
+            <CardDescription className="text-slate-600 dark:text-slate-400">
               Sign in to your account or create a new one
             </CardDescription>
           </CardHeader>
           
           <CardContent>
             <Tabs defaultValue="signin" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="signin">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 mb-6 bg-slate-100 dark:bg-slate-700">
+                <TabsTrigger value="signin" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-600 dark:text-slate-300 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white">Sign In</TabsTrigger>
+                <TabsTrigger value="signup" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-600 dark:text-slate-300 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white">Sign Up</TabsTrigger>
               </TabsList>
 
               {error && (
-                <Alert className="mb-4 border-red-200 bg-red-50">
-                  <AlertDescription className="text-red-700">
+                <Alert className="mb-4 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
+                  <AlertDescription className="text-red-700 dark:text-red-400">
                     {error}
                   </AlertDescription>
                 </Alert>
@@ -142,42 +142,42 @@ const Login: React.FC = () => {
               <TabsContent value="signin">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-email" className="text-sm font-medium text-slate-700">
+                    <Label htmlFor="signin-email" className="text-sm font-medium text-slate-700 dark:text-slate-300">
                       Email
                     </Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 w-4 h-4" />
                       <Input
                         id="signin-email"
                         type="email"
                         value={signInForm.email}
                         onChange={(e) => setSignInForm({ ...signInForm, email: e.target.value })}
                         placeholder="Enter your email"
-                        className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                        className="pl-10 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-white dark:placeholder-slate-400"
                         required
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password" className="text-sm font-medium text-slate-700">
+                    <Label htmlFor="signin-password" className="text-sm font-medium text-slate-700 dark:text-slate-300">
                       Password
                     </Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 w-4 h-4" />
                       <Input
                         id="signin-password"
                         type={showPassword ? 'text' : 'password'}
                         value={signInForm.password}
                         onChange={(e) => setSignInForm({ ...signInForm, password: e.target.value })}
                         placeholder="Enter your password"
-                        className="pl-10 pr-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                        className="pl-10 pr-10 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-white dark:placeholder-slate-400"
                         required
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
                       >
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -186,7 +186,7 @@ const Login: React.FC = () => {
 
                   <Button 
                     type="submit" 
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                    className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-medium"
                     disabled={isLoading}
                   >
                     {isLoading ? (
@@ -202,61 +202,61 @@ const Login: React.FC = () => {
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-name" className="text-sm font-medium text-slate-700">
+                    <Label htmlFor="signup-name" className="text-sm font-medium text-slate-700 dark:text-slate-300">
                       Full Name
                     </Label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 w-4 h-4" />
                       <Input
                         id="signup-name"
                         type="text"
                         value={signUpForm.fullName}
                         onChange={(e) => setSignUpForm({ ...signUpForm, fullName: e.target.value })}
                         placeholder="Enter your full name"
-                        className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                        className="pl-10 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-white dark:placeholder-slate-400"
                         required
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email" className="text-sm font-medium text-slate-700">
+                    <Label htmlFor="signup-email" className="text-sm font-medium text-slate-700 dark:text-slate-300">
                       Email
                     </Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 w-4 h-4" />
                       <Input
                         id="signup-email"
                         type="email"
                         value={signUpForm.email}
                         onChange={(e) => setSignUpForm({ ...signUpForm, email: e.target.value })}
                         placeholder="Enter your email"
-                        className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                        className="pl-10 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-white dark:placeholder-slate-400"
                         required
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password" className="text-sm font-medium text-slate-700">
+                    <Label htmlFor="signup-password" className="text-sm font-medium text-slate-700 dark:text-slate-300">
                       Password
                     </Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 w-4 h-4" />
                       <Input
                         id="signup-password"
                         type={showPassword ? 'text' : 'password'}
                         value={signUpForm.password}
                         onChange={(e) => setSignUpForm({ ...signUpForm, password: e.target.value })}
                         placeholder="Create a password"
-                        className="pl-10 pr-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                        className="pl-10 pr-10 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-white dark:placeholder-slate-400"
                         required
                         minLength={6}
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
                       >
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -264,18 +264,18 @@ const Login: React.FC = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-confirm-password" className="text-sm font-medium text-slate-700">
+                    <Label htmlFor="signup-confirm-password" className="text-sm font-medium text-slate-700 dark:text-slate-300">
                       Confirm Password
                     </Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 w-4 h-4" />
                       <Input
                         id="signup-confirm-password"
                         type={showPassword ? 'text' : 'password'}
                         value={signUpForm.confirmPassword}
                         onChange={(e) => setSignUpForm({ ...signUpForm, confirmPassword: e.target.value })}
                         placeholder="Confirm your password"
-                        className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                        className="pl-10 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-white dark:placeholder-slate-400"
                         required
                       />
                     </div>
@@ -283,7 +283,7 @@ const Login: React.FC = () => {
 
                   <Button 
                     type="submit" 
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                    className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-medium"
                     disabled={isLoading}
                   >
                     {isLoading ? (
@@ -298,7 +298,7 @@ const Login: React.FC = () => {
           </CardContent>
         </Card>
 
-        <p className="text-center text-xs text-slate-500 mt-6">
+        <p className="text-center text-xs text-slate-500 dark:text-slate-400 mt-6">
           By signing in, you agree to our terms of service and privacy policy.
         </p>
       </div>

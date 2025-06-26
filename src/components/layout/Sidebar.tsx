@@ -1,5 +1,5 @@
-import React from 'react';
-import { Plus, Folder, ChevronLeft, ChevronRight, User, Users, Settings, LogOut, ChevronDown } from 'lucide-react';
+import React, { useState } from 'react';
+import { Plus, Folder, ChevronLeft, ChevronRight, User, Users, LogOut, ChevronDown, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -11,6 +11,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface Tasking {
   id: string;
@@ -57,7 +59,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isLoading = false
 }) => {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, signOut, forceSignOut } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isSigningOut, setIsSigningOut] = useState(false);
   
   const personalTaskings = taskings
     .filter(t => t.category === 'personal')
@@ -71,20 +76,59 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const handleSignOut = async () => {
+    if (isSigningOut) return; // Prevent double-clicking
+    
+    setIsSigningOut(true);
+    
     try {
-      await signOut();
-      navigate('/login');
+      console.log('Attempting to sign out...');
+      
+      // Clear all cached queries first
+      queryClient.clear();
+      
+      const { error } = await signOut();
+      
+      if (error) {
+        console.error('Sign out error:', error);
+        toast({
+          title: "Sign out failed",
+          description: error.message || "Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      console.log('Sign out successful, navigating to login...');
+      
+      // Show success message
+      toast({
+        title: "Signed out successfully",
+        description: "You have been logged out of your account.",
+      });
+      
+      // Navigate to login
+      navigate('/login', { replace: true });
+      
     } catch (error) {
       console.error('Error signing out:', error);
+      
+      // Fallback: force local logout if something goes wrong
+      console.log('Forcing local logout...');
+      
+      forceSignOut();
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      toast({
+        title: "Signed out locally",
+        description: "You have been logged out locally.",
+      });
+      
+      navigate('/login', { replace: true });
+      
+    } finally {
+      setIsSigningOut(false);
     }
-  };
-
-  const handleProfileClick = () => {
-    navigate('/profile');
-  };
-
-  const handleSettingsClick = () => {
-    navigate('/settings');
   };
 
   // Get user initials for avatar fallback
@@ -241,6 +285,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <Button
                   variant="ghost"
                   className="w-full justify-start px-2 py-2 h-auto hover:bg-slate-50 dark:hover:bg-slate-800"
+                  disabled={isSigningOut}
                 >
                   <div className="flex items-center gap-3 w-full">
                     <Avatar className="h-8 w-8">
@@ -262,29 +307,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
               
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuItem 
-                  className="cursor-pointer"
-                  onClick={handleProfileClick}
-                >
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
-                </DropdownMenuItem>
-                
-                <DropdownMenuItem 
-                  className="cursor-pointer"
-                  onClick={handleSettingsClick}
-                >
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
-                
-                <DropdownMenuSeparator />
-                
-                <DropdownMenuItem 
                   className="cursor-pointer text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400"
                   onClick={handleSignOut}
+                  disabled={isSigningOut}
                 >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Sign Out</span>
+                  {isSigningOut ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <span>Signing out...</span>
+                    </>
+                  ) : (
+                    <>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Sign Out</span>
+                    </>
+                  )}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -293,7 +330,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="flex justify-center">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="hover:bg-slate-50 dark:hover:bg-slate-800">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="hover:bg-slate-50 dark:hover:bg-slate-800"
+                    disabled={isSigningOut}
+                  >
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={user.user_metadata?.avatar_url} />
                       <AvatarFallback className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 text-sm font-medium">
@@ -305,29 +347,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuItem 
-                    className="cursor-pointer"
-                    onClick={handleProfileClick}
-                  >
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
-                  </DropdownMenuItem>
-                  
-                  <DropdownMenuItem 
-                    className="cursor-pointer"
-                    onClick={handleSettingsClick}
-                  >
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
-                  </DropdownMenuItem>
-                  
-                  <DropdownMenuSeparator />
-                  
-                  <DropdownMenuItem 
                     className="cursor-pointer text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400"
                     onClick={handleSignOut}
+                    disabled={isSigningOut}
                   >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Sign Out</span>
+                    {isSigningOut ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <span>Signing out...</span>
+                      </>
+                    ) : (
+                      <>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Sign Out</span>
+                      </>
+                    )}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

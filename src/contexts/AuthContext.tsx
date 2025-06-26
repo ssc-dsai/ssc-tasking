@@ -9,6 +9,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, metadata?: { full_name?: string }) => Promise<{ error: AuthError | null }>
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>
   signOut: () => Promise<{ error: AuthError | null }>
+  forceSignOut: () => void
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>
 }
 
@@ -31,11 +32,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
 
+  // Separate function to handle profile creation outside of auth state change
+  const handleProfileCreation = async (user: User) => {
+    try {
+      console.log('[AUTH] Checking/creating profile for user:', user.id);
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single();
+
+      if (!existingProfile) {
+        console.log('[AUTH] Creating new profile for user:', user.id);
+        await supabase.from('profiles').insert({
+          id: user.id,
+          email: user.email!,
+          full_name: user.user_metadata?.full_name || null,
+        });
+      }
+    } catch (error) {
+      console.error('Profile creation/check error:', error);
+    }
+  };
+
   useEffect(() => {
     let eventFired = false;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         eventFired = true;
         console.log('[AUTH EVENT]', event, session);
         setSession(session);
@@ -45,24 +69,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setLoading(false);
         }
 
+        // Handle profile creation outside of this handler to avoid deadlock
         if (event === 'SIGNED_IN' && session?.user) {
-          try {
-            const { data: existingProfile } = await supabase
-              .from('profiles')
-              .select('id')
-              .eq('id', session.user.id)
-              .single();
-
-            if (!existingProfile) {
-              await supabase.from('profiles').insert({
-                id: session.user.id,
-                email: session.user.email!,
-                full_name: session.user.user_metadata?.full_name || null,
-              });
-            }
-          } catch (error) {
-            console.error('Profile creation/check error:', error);
-          }
+          // Use setTimeout to move this outside the auth state change handler
+          setTimeout(() => {
+            handleProfileCreation(session.user);
+          }, 0);
         }
       }
     );
@@ -104,8 +116,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut()
-    return { error }
+    console.log('[AUTH] Starting sign out process...');
+    const { error } = await supabase.auth.signOut();
+    console.log('[AUTH] Sign out completed:', error ? 'with error' : 'successfully');
+    return { error };
   }
 
   const resetPassword = async (email: string) => {
@@ -115,6 +129,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return { error }
   }
 
+  const forceSignOut = () => {
+    console.log('[AUTH] Force sign out - clearing local state');
+    setUser(null);
+    setSession(null);
+    setLoading(false);
+  }
+
   const value: AuthContextType = {
     user,
     session,
@@ -122,6 +143,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signUp,
     signIn,
     signOut,
+    forceSignOut,
     resetPassword,
   }
 

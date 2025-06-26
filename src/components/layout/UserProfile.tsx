@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
@@ -11,24 +11,70 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { LogOut, ChevronDown } from 'lucide-react'
+import { LogOut, ChevronDown, Loader2 } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
+import { useQueryClient } from '@tanstack/react-query'
 
 const UserProfile: React.FC = () => {
-  const { user, signOut } = useAuth()
+  const { user, signOut, forceSignOut } = useAuth()
   const navigate = useNavigate()
+  const { toast } = useToast()
+  const queryClient = useQueryClient()
+  const [isSigningOut, setIsSigningOut] = useState(false)
 
   const handleSignOut = async () => {
+    if (isSigningOut) return // Prevent double-clicking
+    
+    setIsSigningOut(true)
+    
     try {
       console.log('Attempting to sign out...');
+      
+      // Clear all cached queries first
+      queryClient.clear()
+      
       const { error } = await signOut();
+      
       if (error) {
         console.error('Sign out error:', error);
+        toast({
+          title: "Sign out failed",
+          description: error.message || "Please try again.",
+          variant: "destructive",
+        });
         return;
       }
+      
       console.log('Sign out successful, navigating to login...');
-      navigate('/login');
+      
+      // Show success message
+      toast({
+        title: "Signed out successfully",
+        description: "You have been logged out of your account.",
+      });
+      
+      // Navigate to login
+      navigate('/login', { replace: true });
+      
     } catch (error) {
       console.error('Error signing out:', error);
+      
+      // Fallback: force local logout if something goes wrong
+      console.log('Forcing local logout...');
+      
+      forceSignOut();
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      toast({
+        title: "Signed out locally",
+        description: "You have been logged out locally.",
+      });
+      
+      navigate('/login', { replace: true });
+      
+    } finally {
+      setIsSigningOut(false)
     }
   }
 
@@ -55,6 +101,7 @@ const UserProfile: React.FC = () => {
         <Button 
           variant="ghost" 
           className="flex items-center gap-3 px-3 py-2 h-auto hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg"
+          disabled={isSigningOut}
         >
           <Avatar className="h-8 w-8">
             <AvatarImage src={user.user_metadata?.avatar_url} />
@@ -87,9 +134,19 @@ const UserProfile: React.FC = () => {
         <DropdownMenuItem 
           className="cursor-pointer text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400"
           onClick={handleSignOut}
+          disabled={isSigningOut}
         >
-          <LogOut className="mr-2 h-4 w-4" />
-          <span>Sign out</span>
+          {isSigningOut ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <span>Signing out...</span>
+            </>
+          ) : (
+            <>
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Sign out</span>
+            </>
+          )}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
