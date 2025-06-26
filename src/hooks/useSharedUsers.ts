@@ -18,7 +18,6 @@ export const useSharedUsers = (taskingId: string) => {
 
   const fetchSharedUsers = async () => {
     if (!session?.access_token || !taskingId) {
-      console.log('👥 [useSharedUsers] No session or taskingId, skipping fetch');
       setSharedUsers([]);
       setIsLoading(false);
       return;
@@ -28,7 +27,7 @@ export const useSharedUsers = (taskingId: string) => {
     setError(null);
 
     try {
-      console.log('👥 [useSharedUsers] Fetching shared users for tasking:', taskingId);
+
 
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/share-tasking`, {
         method: 'POST',
@@ -48,8 +47,7 @@ export const useSharedUsers = (taskingId: string) => {
       }
 
       const data = await response.json();
-      console.log('👥 [useSharedUsers] Fetched shared users:', data.users?.length || 0);
-      console.log('👥 [useSharedUsers] Full user data:', data.users);
+
       
       setSharedUsers(data.users || []);
 

@@ -31,6 +31,7 @@ import { useSharedUsers } from '@/hooks/useSharedUsers';
 
 import { useQueryClient } from '@tanstack/react-query';
 import { DEV } from '@/lib/log';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface TaskingFile {
   id: string;
@@ -56,6 +57,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
 
 const TaskingView: React.FC = () => {
   const { taskingId } = useParams();
+  const { user, session } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -153,7 +156,6 @@ const TaskingView: React.FC = () => {
   } : null);
 
   const { toast } = useToast();
-  const { user, session } = useAuth();
   const queryClient = useQueryClient();
   const { searchDocuments, isSearching } = useVectorSearch();
   
@@ -170,17 +172,9 @@ const TaskingView: React.FC = () => {
   const savedBriefings = isRealTasking && realTaskingData?.data?.briefings ? realTaskingData.data.briefings : [];
   
   // Debug logging - only log when values actually change
-  useEffect(() => {
-    console.log('📄 [TaskingView] Briefings from tasking data:', savedBriefings.length);
-    if (savedBriefings.length > 0) {
-      console.log('📄 [TaskingView] All briefings:', savedBriefings.map((b, i) => `${i}: ${b.title} (${new Date(b.created_at).toLocaleString()})`));
-    }
-  }, [savedBriefings.length]);
 
-  useEffect(() => {
-    console.log('🔍 [TaskingView] Debug - isRealTasking:', isRealTasking, 'taskingId:', taskingId);
-    console.log('🔍 [TaskingView] Debug - user:', user?.id, 'session:', !!session);
-  }, [isRealTasking, taskingId, user?.id, !!session]);
+
+
   
   // helper to persist message
   const persistChat = async (sender: 'user' | 'assistant' | 'system', content: string) => {
@@ -646,7 +640,7 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
       timestamp: new Date(r.created_at).toLocaleString(),
     }));
 
-    console.log('[ChatSync] Server returned', transformed.length, 'messages');
+
 
     setChatMessages(transformed);
   }, [loadingHistory, history, isRealTasking]);
@@ -667,7 +661,7 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
       
       // Only set if we don't already have messages to avoid duplicates
       setChatMessages(prev => prev.length === 0 ? initial : prev);
-      DEV && console.log('[chat] prefilled', initial.length);
+
     }
   }, [isRealTasking, realTaskingData]);
 
@@ -681,12 +675,7 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
   }, [savedBriefings.length]);
 
   // Log when briefings are loaded for debugging
-  useEffect(() => {
-    if (isRealTasking && savedBriefings.length > 0) {
-      console.log('📄 [TaskingView] Briefings loaded:', savedBriefings.length, 'briefings');
-      console.log('📄 [TaskingView] Latest briefing:', savedBriefings[0].title);
-    }
-  }, [savedBriefings, isRealTasking]);
+
 
   // Header upload button handler
   const handleHeaderUploadClick = () => {
@@ -737,7 +726,7 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
         return;
       }
       
-      console.log('📋 [TaskingView] Fetching taskings for sidebar');
+
       const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-taskings?limit=50`;
 
       try {
@@ -757,7 +746,7 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
           return;
         }
 
-        console.log('✅ [TaskingView] Taskings fetched:', result.data?.length || 0);
+
 
         const formattedTaskings: Tasking[] = (result.data || []).map((tasking: any) => ({
           id: tasking.id,
@@ -850,7 +839,7 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                     href="/dashboard"
                     className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
                   >
-                    Dashboard
+                    {t('nav.dashboard')}
                   </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator>
@@ -874,7 +863,7 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                   <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
                     <FileText className="w-3 h-3 text-white" />
                   </div>
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Briefings</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('tasking.briefings')}</h2>
                   
                   {/* Briefing Selector */}
                   {savedBriefings.length > 1 && (
@@ -910,7 +899,7 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                     size="sm"
                   >
                     <Plus className="w-4 h-4" />
-                    <span>Generate</span>
+                    <span>{t('common.generate')}</span>
                   </Button>
 
 
@@ -1107,11 +1096,11 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                       <FileText className="w-8 h-8 text-gray-400 dark:text-slate-400" />
                     </div>
                     <p className="text-gray-600 dark:text-slate-300 mb-2">
-                      {isRealTasking ? 'No briefings found for this tasking' : 'No briefing generated yet'}
+                      {isRealTasking ? t('tasking.noBriefings') : t('tasking.noBriefings')}
                     </p>
                     <p className="text-gray-500 dark:text-slate-400 text-sm mb-4">
                       {hasFiles 
-                        ? 'Click "Generate" to create your first briefing' 
+                        ? `Click "${t('common.generate')}" to create your first briefing` 
                         : 'Upload PDF or TXT files first, then generate a briefing'
                       }
                     </p>
@@ -1121,7 +1110,7 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                       className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
                     >
                       <Plus className="w-4 h-4 mr-2" />
-                      Generate Briefing
+                      {t('briefing.generateBriefing')}
                     </Button>
                   </div>
                 </div>
@@ -1145,9 +1134,9 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                   <div className="w-6 h-6 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
                     <Upload className="w-3 h-3 text-white" />
                   </div>
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Files</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('tasking.files')}</h2>
                   <div className="bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 text-xs px-2 py-1 rounded-full">
-                    {files.length} files
+                    {files.length === 1 ? t('files.singleFile') : `${files.length} ${t('files.filesLabel')}`}
                   </div>
                 </div>
 
@@ -1170,12 +1159,12 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                     {isRealTasking && isUploading ? (
                       <>
                         <Upload className="w-4 h-4 animate-pulse" />
-                        <span>Uploading...</span>
+                        <span>{t('files.uploading')}</span>
                       </>
                     ) : (
                       <>
                         <Upload className="w-4 h-4" />
-                        <span>Upload</span>
+                        <span>{t('files.upload')}</span>
                       </>
                     )}
                   </Button>
@@ -1189,8 +1178,8 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                       <div className="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-slate-600 dark:to-slate-500 rounded-xl flex items-center justify-center mx-auto mb-4">
                         <Upload className="w-8 h-8 text-gray-400 dark:text-slate-400" />
                       </div>
-                      <p className="text-gray-600 dark:text-slate-300 mb-2">No files uploaded yet</p>
-                      <p className="text-gray-500 dark:text-slate-400 text-sm">Use the "Upload Files" button in the header to add PDF or TXT files</p>
+                      <p className="text-gray-600 dark:text-slate-300 mb-2">{t('tasking.noFiles')}</p>
+                      <p className="text-gray-500 dark:text-slate-400 text-sm">Use the "{t('files.upload')}" button in the header to add PDF or TXT files</p>
                     </div>
                   </div>
                 ) : (
@@ -1206,7 +1195,7 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                   <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
                     <Users className="w-3 h-3 text-white" />
                   </div>
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Users</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('tasking.users')}</h2>
                 </div>
 
                 <div className="flex items-center space-x-2">
@@ -1217,7 +1206,7 @@ ${generatedBriefing.nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
                     size="sm"
                   >
                     <Plus className="w-4 h-4" />
-                    <span>Add User</span>
+                    <span>{t('common.addUser')}</span>
                   </Button>
                 </div>
               </div>

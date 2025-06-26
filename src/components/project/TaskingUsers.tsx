@@ -1,6 +1,7 @@
 import { Users } from "lucide-react";
 import { useSharedUsers } from "../../hooks/useSharedUsers";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 interface TaskingUsersProps {
   taskingId: string;
@@ -20,6 +21,7 @@ export const TaskingUsers = ({
   ownerAvatarUrl
 }: TaskingUsersProps) => {
   const { sharedUsers, isLoading, error } = useSharedUsers(taskingId);
+  const { t } = useLanguage();
 
   const getUserInitials = (name: string, email: string) => {
     if (name && name.trim()) {
@@ -40,7 +42,7 @@ export const TaskingUsers = ({
     return (
       <div className="text-center py-8 text-gray-500 dark:text-slate-400">
         <div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-2"></div>
-        <p className="text-sm">Loading shared users...</p>
+        <p className="text-sm">{t('common.loading')}</p>
       </div>
     );
   }
@@ -49,7 +51,7 @@ export const TaskingUsers = ({
     return (
       <div className="text-center py-8 text-red-500 dark:text-red-400">
         <Users className="w-8 h-8 mx-auto mb-2" />
-        <p className="text-sm">Error loading shared users</p>
+        <p className="text-sm">{t('error.generic')}</p>
         <p className="text-xs">{error}</p>
       </div>
     );
@@ -69,7 +71,7 @@ export const TaskingUsers = ({
   return (
     <div className="space-y-3">
       <div className="text-sm text-gray-600 dark:text-slate-300 mb-4">
-        Users ({totalUsers})
+        {t('tasking.usersCount').replace('{count}', totalUsers.toString())}
       </div>
 
       {/* Owner */}
@@ -127,7 +129,7 @@ export const TaskingUsers = ({
       {sharedUsers.length === 0 && ownerId && (
         <div className="text-center py-4 text-gray-500 dark:text-slate-400 border border-dashed border-gray-300 dark:border-slate-600 rounded-lg">
           <p className="text-sm">
-            Use the "Add User" button in the header to share this tasking.
+            Use the "{t('common.addUser')}" button in the header to share this tasking.
           </p>
         </div>
       )}

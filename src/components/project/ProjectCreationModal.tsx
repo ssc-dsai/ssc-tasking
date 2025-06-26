@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCreateTasking } from '@/hooks/useCreateTasking';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ProjectCreationModalProps {
   isOpen: boolean;
@@ -27,6 +28,7 @@ export const ProjectCreationModal: React.FC<ProjectCreationModalProps> = ({
   const { toast } = useToast();
   const { user } = useAuth();
   const createTaskingMutation = useCreateTasking();
+  const { t } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,8 +56,8 @@ export const ProjectCreationModal: React.FC<ProjectCreationModalProps> = ({
 
       // Show success toast
       toast({
-        title: "Tasking created",
-        description: "Your tasking has been created successfully.",
+        title: t('modal.taskingCreated'),
+        description: t('modal.taskingCreatedDescription'),
       });
 
       // Navigate to the new tasking
@@ -67,8 +69,8 @@ export const ProjectCreationModal: React.FC<ProjectCreationModalProps> = ({
     } catch (error) {
       console.error('Error creating tasking:', error);
       toast({
-        title: "Error",
-        description: "Failed to create tasking. Please try again.",
+        title: t('common.error'),
+        description: t('modal.taskingCreationFailed'),
         variant: "destructive",
       });
     } finally {
@@ -80,9 +82,11 @@ export const ProjectCreationModal: React.FC<ProjectCreationModalProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
         <DialogHeader className="pb-4">
-          <DialogTitle className="text-xl font-semibold text-slate-900 dark:text-white">Create New Tasking</DialogTitle>
+          <DialogTitle className="text-xl font-semibold text-slate-900 dark:text-white">
+            {t('modal.createTasking')}
+          </DialogTitle>
           <DialogDescription className="text-slate-600 dark:text-slate-400">
-            Set up a new tasking to organize your work and generate AI-powered briefing notes.
+            {t('modal.createTaskingDescription')}
           </DialogDescription>
         </DialogHeader>
 
@@ -91,13 +95,13 @@ export const ProjectCreationModal: React.FC<ProjectCreationModalProps> = ({
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="project-name" className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                Tasking Name *
+                {t('modal.taskingTitle')} *
               </Label>
               <Input
                 id="project-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Enter tasking name..."
+                placeholder={t('modal.taskingTitlePlaceholder')}
                 className="border-slate-200 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder-slate-400 dark:focus:border-blue-400 dark:focus:ring-blue-400"
                 required
               />
@@ -105,13 +109,13 @@ export const ProjectCreationModal: React.FC<ProjectCreationModalProps> = ({
 
             <div className="space-y-2">
               <Label htmlFor="project-description" className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                Description
+                {t('modal.taskingDescription')}
               </Label>
               <Textarea
                 id="project-description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Describe what this tasking is about..."
+                placeholder={t('modal.taskingDescriptionPlaceholder')}
                 className="min-h-[100px] resize-none border-slate-200 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder-slate-400 dark:focus:border-blue-400 dark:focus:ring-blue-400"
               />
             </div>
@@ -126,14 +130,14 @@ export const ProjectCreationModal: React.FC<ProjectCreationModalProps> = ({
               className="border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
               disabled={isSubmitting}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button 
               type="submit" 
               disabled={!name.trim() || isSubmitting}
               className="bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm"
             >
-              {isSubmitting ? 'Creating...' : 'Create Tasking'}
+              {isSubmitting ? t('common.loading') : t('modal.create')}
             </Button>
           </div>
         </form>

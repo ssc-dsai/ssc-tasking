@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import { useEffect, useState } from 'react';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import Login from "./pages/Login";
@@ -19,7 +20,7 @@ function SupabaseTest() {
   useEffect(() => {
     if (!DEV) return;
     supabase.auth.getUser().then((result) => {
-      console.log('[auth] getUser', result);
+
     });
   }, []);
   return null;
@@ -68,10 +69,11 @@ const App = () => {
     <>
       {DEV && <SupabaseTest />}
       <ThemeProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <Routes>
+        <LanguageProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <Routes>
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
           
@@ -126,7 +128,8 @@ const App = () => {
           {/* 404 route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
-        </TooltipProvider>
+      </TooltipProvider>
+        </LanguageProvider>
       </ThemeProvider>
     </>
   );

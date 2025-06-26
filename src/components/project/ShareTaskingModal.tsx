@@ -14,6 +14,7 @@ import { useUserSearch } from '@/hooks/useUserSearch';
 import { useShareTasking } from '@/hooks/useShareTasking';
 import { useSharedUsers } from '@/hooks/useSharedUsers';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SharedUser {
   id: string;
@@ -47,6 +48,7 @@ export const ShareTaskingModal: React.FC<ShareTaskingModalProps> = ({
   const { addUser, removeUser, isLoading: isSharing } = useShareTasking();
   const { sharedUsers, isLoading: isLoadingSharedUsers, refetch: refetchSharedUsers } = useSharedUsers(taskingId);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   // Debounced search
   useEffect(() => {
@@ -76,7 +78,7 @@ export const ShareTaskingModal: React.FC<ShareTaskingModalProps> = ({
     
     if (result) {
       toast({
-        title: "User added successfully",
+        title: t('common.success'),
         description: `${userEmail} now has access to this tasking.`,
       });
       setSearchTerm('');
@@ -84,8 +86,8 @@ export const ShareTaskingModal: React.FC<ShareTaskingModalProps> = ({
       onUserAdded?.();
     } else {
       toast({
-        title: "Failed to add user",
-        description: "Please try again.",
+        title: t('error.generic'),
+        description: t('error.generic'),
         variant: "destructive",
       });
     }
@@ -96,15 +98,15 @@ export const ShareTaskingModal: React.FC<ShareTaskingModalProps> = ({
     
     if (result) {
       toast({
-        title: "User removed successfully",
+        title: t('common.success'),
         description: `${userEmail} no longer has access to this tasking.`,
       });
       refetchSharedUsers(); // Refresh the shared users list
       onUserRemoved?.();
     } else {
       toast({
-        title: "Failed to remove user",
-        description: "Please try again.",
+        title: t('error.generic'),
+        description: t('error.generic'),
         variant: "destructive",
       });
     }
@@ -123,23 +125,23 @@ export const ShareTaskingModal: React.FC<ShareTaskingModalProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2 text-gray-900 dark:text-white">
             <Users className="w-5 h-5" />
-            <span>Share "{taskingName}"</span>
+            <span>{t('tasking.shareTaskingTitle').replace('{title}', taskingName)}</span>
           </DialogTitle>
           <DialogDescription className="text-slate-600 dark:text-slate-400">
-            Add people to collaborate on this tasking. You can remove access at any time.
+            {t('tasking.shareDescription')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Add User Section */}
           <div className="space-y-4">
-            <h3 className="text-sm font-medium text-gray-900 dark:text-white">Add People</h3>
+            <h3 className="text-sm font-medium text-gray-900 dark:text-white">{t('common.addPeople')}</h3>
             
             {/* Search Input */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-slate-400 w-4 h-4" />
               <Input
-                placeholder="Search by name or email..."
+                placeholder={t('common.searchByNameOrEmail')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder-slate-400"
@@ -152,7 +154,7 @@ export const ShareTaskingModal: React.FC<ShareTaskingModalProps> = ({
                 {isSearching ? (
                   <div className="p-4 text-center text-gray-500 dark:text-slate-400">
                     <div className="animate-spin w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-2"></div>
-                    Searching...
+                    {t('common.loading')}
                   </div>
                 ) : users.length > 0 ? (
                   <div className="divide-y divide-gray-200 dark:divide-slate-600">
@@ -177,7 +179,7 @@ export const ShareTaskingModal: React.FC<ShareTaskingModalProps> = ({
                           className="h-7"
                         >
                           <UserPlus className="w-3 h-3 mr-1" />
-                          Add
+                          {t('common.addUser')}
                         </Button>
                       </div>
                     ))}
@@ -194,13 +196,13 @@ export const ShareTaskingModal: React.FC<ShareTaskingModalProps> = ({
           {/* Current Shared Users */}
           <div className="space-y-4">
             <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-              People with access ({isLoadingSharedUsers ? '...' : sharedUsers.length})
+              {t('common.peopleWithAccess')} ({isLoadingSharedUsers ? '...' : sharedUsers.length})
             </h3>
             
             {isLoadingSharedUsers ? (
               <div className="text-center py-8 text-gray-500 dark:text-slate-400">
                 <div className="animate-spin w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-2"></div>
-                <p className="text-sm">Loading shared users...</p>
+                <p className="text-sm">{t('common.loading')}</p>
               </div>
             ) : sharedUsers.length > 0 ? (
               <div className="space-y-2">

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
+import { useLanguage } from '@/contexts/LanguageContext'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -17,6 +18,7 @@ import { useQueryClient } from '@tanstack/react-query'
 
 const UserProfile: React.FC = () => {
   const { user, signOut, forceSignOut } = useAuth()
+  const { t } = useLanguage()
   const navigate = useNavigate()
   const { toast } = useToast()
   const queryClient = useQueryClient()
@@ -38,8 +40,8 @@ const UserProfile: React.FC = () => {
       if (error) {
         console.error('Sign out error:', error);
         toast({
-          title: "Sign out failed",
-          description: error.message || "Please try again.",
+          title: t('error.generic'),
+          description: error.message || t('error.generic'),
           variant: "destructive",
         });
         return;
@@ -49,8 +51,8 @@ const UserProfile: React.FC = () => {
       
       // Show success message
       toast({
-        title: "Signed out successfully",
-        description: "You have been logged out of your account.",
+        title: t('common.success'),
+        description: t('nav.signOut'),
       });
       
       // Navigate to login
@@ -67,8 +69,8 @@ const UserProfile: React.FC = () => {
       sessionStorage.clear();
       
       toast({
-        title: "Signed out locally",
-        description: "You have been logged out locally.",
+        title: t('common.success'),
+        description: t('nav.signOut'),
       });
       
       navigate('/login', { replace: true });
@@ -139,12 +141,12 @@ const UserProfile: React.FC = () => {
           {isSigningOut ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              <span>Signing out...</span>
+              <span>{t('common.loading')}</span>
             </>
           ) : (
             <>
               <LogOut className="mr-2 h-4 w-4" />
-              <span>Sign out</span>
+              <span>{t('nav.signOut')}</span>
             </>
           )}
         </DropdownMenuItem>

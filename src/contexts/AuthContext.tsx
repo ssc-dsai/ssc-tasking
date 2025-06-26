@@ -35,7 +35,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Separate function to handle profile creation outside of auth state change
   const handleProfileCreation = async (user: User) => {
     try {
-      console.log('[AUTH] Checking/creating profile for user:', user.id);
+
       const { data: existingProfile } = await supabase
         .from('profiles')
         .select('id')
@@ -43,7 +43,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         .single();
 
       if (!existingProfile) {
-        console.log('[AUTH] Creating new profile for user:', user.id);
+
         await supabase.from('profiles').insert({
           id: user.id,
           email: user.email!,
@@ -61,7 +61,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         eventFired = true;
-        console.log('[AUTH EVENT]', event, session);
+
         setSession(session);
         setUser(session?.user ?? null);
 

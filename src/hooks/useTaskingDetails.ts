@@ -81,15 +81,11 @@ export const useTaskingDetails = (taskingId: string, options: UseTaskingDetailsO
   return useQuery({
     queryKey: ['tasking-details', taskingId, user?.id],
     queryFn: async (): Promise<TaskingDetailsResponse> => {
-      console.log('🔍 [Tasking Details] Starting fetch for:', taskingId)
-      
       if (!user) {
-        console.log('❌ [Tasking Details] No user found')
         throw new Error('User not authenticated')
       }
 
       if (!session) {
-        console.log('❌ [Tasking Details] No session found')
         throw new Error('No session available')
       }
 
@@ -97,15 +93,10 @@ export const useTaskingDetails = (taskingId: string, options: UseTaskingDetailsO
         const token = session.access_token
         
         if (!token) {
-          console.log('❌ [Tasking Details] No access token in session')
           throw new Error('No access token in session')
         }
 
-        console.log('✅ [Tasking Details] Using session token, length:', token.length)
-
-        // Use the edge function URL
         const edgeFunctionUrl = `https://dwdznehxubvejbwngnud.supabase.co/functions/v1/get-tasking-details?id=${taskingId}`
-        console.log('🌐 [Tasking Details] Calling URL:', edgeFunctionUrl)
 
         const response = await fetch(edgeFunctionUrl, {
           method: 'GET',
@@ -114,35 +105,22 @@ export const useTaskingDetails = (taskingId: string, options: UseTaskingDetailsO
           },
         })
 
-        console.log('📡 [Tasking Details] Response status:', response.status)
-
         if (!response.ok) {
-          console.log('❌ [Tasking Details] Response not ok:', response.status, response.statusText)
           const errorData = await response.text()
-          console.log('❌ [Tasking Details] Error body:', errorData)
           throw new Error(`HTTP ${response.status}: ${errorData}`)
         }
 
         const data = await response.json()
-        console.log('✅ [Tasking Details] Success response:', {
-          taskingId: data.data?.id,
-          name: data.data?.name,
-          files: data.summary?.file_count,
-          briefings: data.summary?.briefing_count,
-          embeddings: data.summary?.embedding_count
-        })
-        
         return data as TaskingDetailsResponse
       } catch (error) {
-        console.error('💥 [Tasking Details] Caught error:', error)
+        console.error('Tasking Details error:', error)
         throw error
       }
     },
     enabled: !!user && !!session && !!taskingId && (options.enabled !== false),
-    staleTime: 30000, // Consider data fresh for 30 seconds
-    gcTime: 300000, // Keep in cache for 5 minutes
+    staleTime: 30000,
+    gcTime: 300000,
   })
 }
 
-// Export types for use in components
 export type { DetailedTasking, TaskingFile, TaskingBriefing, DocumentEmbedding, TaskingDetailsResponse, SharedUser } 

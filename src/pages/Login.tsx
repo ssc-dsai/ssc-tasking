@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { useLanguage } from '../contexts/LanguageContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,6 +12,7 @@ import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react'
 
 const Login: React.FC = () => {
   const { signIn, signUp, user, loading } = useAuth()
+  const { t } = useLanguage()
   const navigate = useNavigate()
   
   const [isLoading, setIsLoading] = useState(false)
@@ -95,7 +97,7 @@ const Login: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600 dark:text-slate-400">Loading...</p>
+          <p className="text-slate-600 dark:text-slate-400">{t('auth.loading')}</p>
         </div>
       </div>
     )
@@ -111,23 +113,23 @@ const Login: React.FC = () => {
             alt="SSC Tasking" 
             className="w-12 h-12 mx-auto mb-4 rounded-lg"
           />
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">SSC Tasking</h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-2">Generate AI-powered briefing notes</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('dashboard.title')}</h1>
+          <p className="text-slate-600 dark:text-slate-400 mt-2">{t('dashboard.subtitle')}</p>
         </div>
 
         <Card className="border-slate-200 dark:border-slate-700 shadow-sm dark:bg-slate-800">
           <CardHeader className="text-center pb-4">
-            <CardTitle className="text-xl font-semibold text-slate-900 dark:text-white">Welcome</CardTitle>
+            <CardTitle className="text-xl font-semibold text-slate-900 dark:text-white">{t('auth.welcome')}</CardTitle>
             <CardDescription className="text-slate-600 dark:text-slate-400">
-              Sign in to your account or create a new one
+              {t('auth.welcomeDescription')}
             </CardDescription>
           </CardHeader>
           
           <CardContent>
             <Tabs defaultValue="signin" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6 bg-slate-100 dark:bg-slate-700">
-                <TabsTrigger value="signin" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-600 dark:text-slate-300 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white">Sign In</TabsTrigger>
-                <TabsTrigger value="signup" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-600 dark:text-slate-300 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white">Sign Up</TabsTrigger>
+                <TabsTrigger value="signin" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-600 dark:text-slate-300 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white">{t('auth.signin')}</TabsTrigger>
+                <TabsTrigger value="signup" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-600 dark:text-slate-300 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white">{t('auth.signup')}</TabsTrigger>
               </TabsList>
 
               {error && (
@@ -143,7 +145,7 @@ const Login: React.FC = () => {
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="signin-email" className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                      Email
+                      {t('auth.email')}
                     </Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 w-4 h-4" />
@@ -152,7 +154,7 @@ const Login: React.FC = () => {
                         type="email"
                         value={signInForm.email}
                         onChange={(e) => setSignInForm({ ...signInForm, email: e.target.value })}
-                        placeholder="Enter your email"
+                        placeholder={t('auth.enterEmail')}
                         className="pl-10 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-white dark:placeholder-slate-400"
                         required
                       />
@@ -161,7 +163,7 @@ const Login: React.FC = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="signin-password" className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                      Password
+                      {t('auth.password')}
                     </Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 w-4 h-4" />
@@ -170,7 +172,7 @@ const Login: React.FC = () => {
                         type={showPassword ? 'text' : 'password'}
                         value={signInForm.password}
                         onChange={(e) => setSignInForm({ ...signInForm, password: e.target.value })}
-                        placeholder="Enter your password"
+                        placeholder={t('auth.enterPassword')}
                         className="pl-10 pr-10 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-white dark:placeholder-slate-400"
                         required
                       />
@@ -192,7 +194,7 @@ const Login: React.FC = () => {
                     {isLoading ? (
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     ) : (
-                      'Sign In'
+                      t('auth.signin')
                     )}
                   </Button>
                 </form>
@@ -203,7 +205,7 @@ const Login: React.FC = () => {
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="signup-name" className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                      Full Name
+                      {t('auth.fullName')}
                     </Label>
                     <div className="relative">
                       <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 w-4 h-4" />
@@ -212,7 +214,7 @@ const Login: React.FC = () => {
                         type="text"
                         value={signUpForm.fullName}
                         onChange={(e) => setSignUpForm({ ...signUpForm, fullName: e.target.value })}
-                        placeholder="Enter your full name"
+                        placeholder={t('auth.fullNamePlaceholder')}
                         className="pl-10 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-white dark:placeholder-slate-400"
                         required
                       />
@@ -221,7 +223,7 @@ const Login: React.FC = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="signup-email" className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                      Email
+                      {t('auth.email')}
                     </Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 w-4 h-4" />
@@ -230,7 +232,7 @@ const Login: React.FC = () => {
                         type="email"
                         value={signUpForm.email}
                         onChange={(e) => setSignUpForm({ ...signUpForm, email: e.target.value })}
-                        placeholder="Enter your email"
+                        placeholder={t('auth.enterEmail')}
                         className="pl-10 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-white dark:placeholder-slate-400"
                         required
                       />
@@ -239,7 +241,7 @@ const Login: React.FC = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="signup-password" className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                      Password
+                      {t('auth.password')}
                     </Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 w-4 h-4" />
@@ -248,7 +250,7 @@ const Login: React.FC = () => {
                         type={showPassword ? 'text' : 'password'}
                         value={signUpForm.password}
                         onChange={(e) => setSignUpForm({ ...signUpForm, password: e.target.value })}
-                        placeholder="Create a password"
+                        placeholder={t('auth.createPassword')}
                         className="pl-10 pr-10 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-white dark:placeholder-slate-400"
                         required
                         minLength={6}
@@ -265,7 +267,7 @@ const Login: React.FC = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="signup-confirm-password" className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                      Confirm Password
+                      {t('auth.confirmPassword')}
                     </Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 w-4 h-4" />
@@ -274,7 +276,7 @@ const Login: React.FC = () => {
                         type={showPassword ? 'text' : 'password'}
                         value={signUpForm.confirmPassword}
                         onChange={(e) => setSignUpForm({ ...signUpForm, confirmPassword: e.target.value })}
-                        placeholder="Confirm your password"
+                        placeholder={t('auth.confirmPasswordPlaceholder')}
                         className="pl-10 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-white dark:placeholder-slate-400"
                         required
                       />
@@ -289,7 +291,7 @@ const Login: React.FC = () => {
                     {isLoading ? (
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     ) : (
-                      'Create Account'
+                      t('auth.createAccount')
                     )}
                   </Button>
                 </form>
@@ -299,7 +301,7 @@ const Login: React.FC = () => {
         </Card>
 
         <p className="text-center text-xs text-slate-500 dark:text-slate-400 mt-6">
-          By signing in, you agree to our terms of service and privacy policy.
+          {t('auth.termsText')}
         </p>
       </div>
     </div>

@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Tasking {
   id: string;
@@ -37,14 +38,28 @@ interface SidebarProps {
 }
 
 // Utility to format time ago
-function timeAgo(dateString: string): string {
+function timeAgo(dateString: string, t: (key: string, variables?: Record<string, any>) => string): string {
   const now = new Date();
   const date = new Date(dateString);
   const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
-  if (diff < 60) return 'just now';
-  if (diff < 3600) return `${Math.floor(diff / 60)} min${Math.floor(diff / 60) === 1 ? '' : 's'} ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} hour${Math.floor(diff / 3600) === 1 ? '' : 's'} ago`;
-  if (diff < 7 * 86400) return `${Math.floor(diff / 86400)} day${Math.floor(diff / 86400) === 1 ? '' : 's'} ago`;
+  
+  if (diff < 60) return t('time.justNow');
+  
+  const minutes = Math.floor(diff / 60);
+  if (diff < 3600) {
+    return minutes === 1 ? t('time.minuteAgo') : t('time.minutesAgo', { count: minutes });
+  }
+  
+  const hours = Math.floor(diff / 3600);
+  if (diff < 86400) {
+    return hours === 1 ? t('time.hourAgo') : t('time.hoursAgo', { count: hours });
+  }
+  
+  const days = Math.floor(diff / 86400);
+  if (diff < 7 * 86400) {
+    return days === 1 ? t('time.dayAgo') : t('time.daysAgo', { count: days });
+  }
+  
   // If more than 7 days ago, show as 'Month Day'
   return date.toLocaleString('en-US', { month: 'short', day: 'numeric' });
 }
@@ -63,6 +78,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const { t } = useLanguage();
   
   const personalTaskings = taskings
     .filter(t => t.category === 'personal')
@@ -91,8 +107,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       if (error) {
         console.error('Sign out error:', error);
         toast({
-          title: "Sign out failed",
-          description: error.message || "Please try again.",
+          title: t('error.generic'),
+          description: error.message || t('error.generic'),
           variant: "destructive",
         });
         return;
@@ -102,8 +118,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       
       // Show success message
       toast({
-        title: "Signed out successfully",
-        description: "You have been logged out of your account.",
+        title: t('common.success'),
+        description: t('nav.signOut'),
       });
       
       // Navigate to login
@@ -120,8 +136,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       sessionStorage.clear();
       
       toast({
-        title: "Signed out locally",
-        description: "You have been logged out locally.",
+        title: t('common.success'),
+        description: t('nav.signOut'),
       });
       
       navigate('/login', { replace: true });
@@ -200,9 +216,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         ? 'bg-slate-100 dark:bg-slate-700 text-green-600 dark:text-green-400'
                         : 'bg-slate-100 dark:bg-slate-700 text-yellow-600 dark:text-yellow-400'
                     }`}>
-                      {tasking.status}
+                      {tasking.status === 'Complete' ? t('common.complete') : t('common.inProgress')}
                     </span>
-                    <span className="text-[11px] text-slate-400 dark:text-slate-500 ml-2 whitespace-nowrap">{timeAgo(tasking.lastUpdated)}</span>
+                    <span className="text-[11px] text-slate-400 dark:text-slate-500 ml-2 whitespace-nowrap">{timeAgo(tasking.lastUpdated, t)}</span>
                   </div>
                 </div>
               )}
@@ -265,14 +281,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
           size={isCollapsed ? 'icon' : 'default'}
         >
           <Plus className="w-4 h-4" />
-          {!isCollapsed && <span className="ml-2">New Tasking</span>}
+          {!isCollapsed && <span className="ml-2">{t('nav.newTasking')}</span>}
         </Button>
       </div>
 
       {/* Taskings Section */}
       <div className="flex-1 overflow-y-auto px-2 pb-4">
-        {renderTaskingSection(personalTaskings, "Personal", <User className="w-4 h-4" />)}
-        {renderTaskingSection(sharedTaskings, "Shared", <Users className="w-4 h-4" />)}
+        {renderTaskingSection(personalTaskings, t('common.personal'), <User className="w-4 h-4" />)}
+        {renderTaskingSection(sharedTaskings, t('common.shared'), <Users className="w-4 h-4" />)}
       </div>
 
       {/* User Profile Section */}
@@ -314,12 +330,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   {isSigningOut ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      <span>Signing out...</span>
+                      <span>{t('common.loading')}</span>
                     </>
                   ) : (
                     <>
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>Sign Out</span>
+                  <LogOut className="mr-2 h-4 w-4" />
+                      <span>{t('nav.signOut')}</span>
                     </>
                   )}
                 </DropdownMenuItem>
@@ -354,12 +370,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     {isSigningOut ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        <span>Signing out...</span>
+                        <span>{t('common.loading')}</span>
                       </>
                     ) : (
                       <>
-                        <LogOut className="mr-2 h-4 w-4" />
-                        <span>Sign Out</span>
+                    <LogOut className="mr-2 h-4 w-4" />
+                        <span>{t('nav.signOut')}</span>
                       </>
                     )}
                   </DropdownMenuItem>

@@ -28,6 +28,7 @@ import { formatTimeAgo } from '../lib/dashboardUtils';
 
 import { Tasking } from '@/types/tasking';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 // Define the type for taskings from Supabase
 interface SupabaseTasking {
@@ -49,6 +50,7 @@ const Dashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { user, session } = useAuth();
+  const { t } = useLanguage();
 
   // Simple GET call to fetch taskings
   useEffect(() => {
@@ -172,7 +174,7 @@ const Dashboard: React.FC = () => {
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Header */}
         <TopHeader 
-          title="Welcome to SSC Tasking"
+          title={t('dashboard.welcomeTitle')}
         />
         
         <div className="flex-1 overflow-y-auto">
@@ -180,59 +182,59 @@ const Dashboard: React.FC = () => {
             {/* Simple Beautiful Analytics */}
             <div className="mb-4">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Overview</h2>
+                <h2 className="text-xl font-semibold text-slate-900 dark:text-white">{t('dashboard.overview')}</h2>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
                 <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800 shadow-sm hover:shadow-md transition-all duration-200">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-300">Total Taskings</CardTitle>
+                    <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-300">{t('dashboard.totalTaskings')}</CardTitle>
                     <div className="w-8 h-8 bg-blue-200 dark:bg-blue-800 rounded-lg flex items-center justify-center">
                       <FolderOpen className="h-4 w-4 text-blue-700 dark:text-blue-300" />
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-blue-900 dark:text-blue-100 mb-1">{taskings.length}</div>
-                    <p className="text-xs text-blue-600 dark:text-blue-400">Active workstreams</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400">{t('dashboard.activeWorkstreams')}</p>
                   </CardContent>
                 </Card>
 
                 <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800 shadow-sm hover:shadow-md transition-all duration-200">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-green-700 dark:text-green-300">Total Files</CardTitle>
+                    <CardTitle className="text-sm font-medium text-green-700 dark:text-green-300">{t('dashboard.totalFiles')}</CardTitle>
                     <div className="w-8 h-8 bg-green-200 dark:bg-green-800 rounded-lg flex items-center justify-center">
                       <FileCheck className="h-4 w-4 text-green-700 dark:text-green-300" />
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-green-900 dark:text-green-100 mb-1">{totalFiles}</div>
-                    <p className="text-xs text-green-600 dark:text-green-400">Documents uploaded</p>
+                    <p className="text-xs text-green-600 dark:text-green-400">{t('dashboard.documentsUploaded')}</p>
                   </CardContent>
                 </Card>
 
                 <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800 shadow-sm hover:shadow-md transition-all duration-200">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-purple-700 dark:text-purple-300">Recent Activity</CardTitle>
+                    <CardTitle className="text-sm font-medium text-purple-700 dark:text-purple-300">{t('dashboard.recentActivity')}</CardTitle>
                     <div className="w-8 h-8 bg-purple-200 dark:bg-purple-800 rounded-lg flex items-center justify-center">
                       <TrendingUp className="h-4 w-4 text-purple-700 dark:text-purple-300" />
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-purple-900 dark:text-purple-100 mb-1">{recentTaskings}</div>
-                    <p className="text-xs text-purple-600 dark:text-purple-400">New this week</p>
+                    <p className="text-xs text-purple-600 dark:text-purple-400">{t('dashboard.newThisWeek')}</p>
                   </CardContent>
                 </Card>
 
                 <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 border-amber-200 dark:border-amber-800 shadow-sm hover:shadow-md transition-all duration-200">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-amber-700 dark:text-amber-300">Total Briefings</CardTitle>
+                    <CardTitle className="text-sm font-medium text-amber-700 dark:text-amber-300">{t('dashboard.totalBriefings')}</CardTitle>
                     <div className="w-8 h-8 bg-amber-200 dark:bg-amber-800 rounded-lg flex items-center justify-center">
                       <MessageSquare className="h-4 w-4 text-amber-700 dark:text-amber-300" />
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-amber-900 dark:text-amber-100 mb-1">{totalBriefings}</div>
-                    <p className="text-xs text-amber-600 dark:text-amber-400">Generated</p>
+                    <p className="text-xs text-amber-600 dark:text-amber-400">{t('dashboard.generated')}</p>
                   </CardContent>
                 </Card>
               </div>
@@ -245,16 +247,16 @@ const Dashboard: React.FC = () => {
                 className="bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                New Tasking
+                {t('dashboard.newTasking')}
               </Button>
             </div>
 
             {/* Enhanced Taskings List */}
             <div className="space-y-3 mb-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Your Taskings</h2>
+                <h2 className="text-xl font-semibold text-slate-900 dark:text-white">{t('dashboard.yourTaskings')}</h2>
                 <div className="flex items-center gap-3">
-                  <span className="text-sm text-slate-500 dark:text-slate-400">{taskings.length} taskings</span>
+                  <span className="text-sm text-slate-500 dark:text-slate-400">{taskings.length} {t('nav.taskings').toLowerCase()}</span>
                 </div>
               </div>
 
@@ -314,10 +316,10 @@ const Dashboard: React.FC = () => {
                         </h3>
                         <div className="flex items-center gap-2">
                           <Badge variant={tasking.category === 'personal' ? 'default' : 'secondary'} className="text-xs">
-                            {tasking.category === 'personal' ? 'Personal' : 'Shared'}
+                            {tasking.category === 'personal' ? t('common.personal') : t('common.shared')}
                           </Badge>
                           <span className="text-xs text-slate-400 dark:text-slate-500">
-                            Created {formatTimeAgo(tasking.createdAt)}
+                            {t('briefing.generatedOn').replace('on', '')} {formatTimeAgo(tasking.createdAt)}
                           </span>
                         </div>
                       </div>
@@ -333,17 +335,23 @@ const Dashboard: React.FC = () => {
                       <div className="flex items-center gap-1 px-2 py-1 bg-slate-50 dark:bg-slate-700 rounded text-xs">
                         <FileCheck className="w-3 h-3 text-slate-500 dark:text-slate-400" />
                         <span className="font-medium text-slate-700 dark:text-slate-300">{tasking.fileCount || 0}</span>
-                        <span className="text-slate-500 dark:text-slate-400">files</span>
+                        <span className="text-slate-500 dark:text-slate-400">
+                          {(tasking.fileCount || 0) === 1 ? t('files.fileLabel') : t('files.filesLabel')}
+                        </span>
                       </div>
                       <div className="flex items-center gap-1 px-2 py-1 bg-slate-50 dark:bg-slate-700 rounded text-xs">
                         <FileText className="w-3 h-3 text-slate-500 dark:text-slate-400" />
                         <span className="font-medium text-slate-700 dark:text-slate-300">{tasking.briefingCount || 0}</span>
-                        <span className="text-slate-500 dark:text-slate-400">briefings</span>
+                        <span className="text-slate-500 dark:text-slate-400">
+                          {(tasking.briefingCount || 0) === 1 ? t('briefing.briefingLabel') : t('briefing.briefingsLabel')}
+                        </span>
                       </div>
                       <div className="flex items-center gap-1 px-2 py-1 bg-slate-50 dark:bg-slate-700 rounded text-xs">
                         <MessageSquare className="w-3 h-3 text-slate-500 dark:text-slate-400" />
                         <span className="font-medium text-slate-700 dark:text-slate-300">{tasking.chatCount || 0}</span>
-                        <span className="text-slate-500 dark:text-slate-400">chats</span>
+                        <span className="text-slate-500 dark:text-slate-400">
+                          {(tasking.chatCount || 0) === 1 ? t('chat.chatLabel') : t('chat.chatsLabel')}
+                        </span>
                       </div>
                     </div>
 
@@ -377,7 +385,7 @@ const Dashboard: React.FC = () => {
                         </div>
                       </div>
                       <div className="text-xs text-slate-400 dark:text-slate-500">
-                        Updated {formatTimeAgo(tasking.lastUpdated)}
+                        {t('time.updated').replace('{time}', formatTimeAgo(tasking.lastUpdated))}
                       </div>
                     </div>
                   </div>

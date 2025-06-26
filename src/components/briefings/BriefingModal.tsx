@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { BriefingDisplay } from './BriefingDisplay';
 import { MarkdownBriefingDisplay } from './MarkdownBriefingDisplay';
@@ -66,9 +67,12 @@ export const BriefingModal: React.FC<BriefingModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-6xl h-[90vh] p-0 flex flex-col gap-0 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+        <DialogContent className="max-w-6xl h-[90vh] p-0 flex flex-col gap-0 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700" aria-describedby="briefing-description">
           {/* Fixed Header - matching TaskingView style */}
           <DialogHeader className="px-4 py-3 border-b border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 flex-shrink-0">
+          <DialogDescription className="sr-only">
+            View and interact with the generated briefing document
+          </DialogDescription>
           <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0 mr-4">
                 {briefing.content ? (() => {
@@ -98,6 +102,9 @@ export const BriefingModal: React.FC<BriefingModalProps> = ({
                   })}</span>
                 </div>
               </div>
+              <DialogDescription className="sr-only">
+                View and interact with the generated briefing document
+              </DialogDescription>
               <div className="flex items-center space-x-2 mr-10">
                 {/* Markdown View Toggle - only show for content briefings */}
                 {briefing.content && (

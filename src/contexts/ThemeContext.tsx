@@ -10,17 +10,22 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('system');
-  const [actualTheme, setActualTheme] = useState<'light' | 'dark'>('light');
+// Helper function to get initial theme from localStorage
+const getInitialTheme = (): Theme => {
+  if (typeof window === 'undefined') return 'system';
+  
+  const stored = localStorage.getItem('theme') as Theme;
+  
+  if (stored && ['light', 'dark', 'system'].includes(stored)) {
+    return stored;
+  }
+  
+  return 'system';
+};
 
-  useEffect(() => {
-    // Get stored theme or default to system
-    const stored = localStorage.getItem('theme') as Theme;
-    if (stored && ['light', 'dark', 'system'].includes(stored)) {
-      setTheme(stored);
-    }
-  }, []);
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setTheme] = useState<Theme>(getInitialTheme);
+  const [actualTheme, setActualTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
     const root = window.document.documentElement;

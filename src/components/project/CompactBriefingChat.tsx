@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Send, MessageSquare, Maximize2 } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ChatMessage {
   id: string;
@@ -27,6 +28,7 @@ export const CompactBriefingChat: React.FC<CompactBriefingChatProps> = ({
 }) => {
   const [prompt, setPrompt] = useState('');
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -48,7 +50,7 @@ export const CompactBriefingChat: React.FC<CompactBriefingChatProps> = ({
           <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
             <MessageSquare className="w-3 h-3 text-white" />
           </div>
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Chat</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('tasking.chat')}</h2>
         </div>
         {onOpenModal && (
           <Button variant="ghost" size="sm" onClick={onOpenModal}>
@@ -80,7 +82,7 @@ export const CompactBriefingChat: React.FC<CompactBriefingChatProps> = ({
             </div>
           ) : (
             <div className="flex items-center justify-center h-full text-gray-500 dark:text-slate-400 text-sm">
-              No chat messages yet
+              {t('common.loading')}
             </div>
           )}
         </div>
@@ -90,16 +92,16 @@ export const CompactBriefingChat: React.FC<CompactBriefingChatProps> = ({
           <Textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Ask me anything about your documents..."
+            placeholder={t('tasking.chatPlaceholderDefault')}
             className="min-h-[80px] resize-none text-sm border border-gray-300 dark:border-slate-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:bg-slate-700 dark:text-white dark:placeholder-slate-400"
             disabled={isGenerating}
           />
           
           <div className="flex items-center justify-between">
             <div className="text-xs text-gray-500 dark:text-slate-400">
-              {!hasFiles && "Upload files to chat"}
-              {hasFiles && !prompt.trim() && "Type your message"}
-              {hasFiles && prompt.trim() && "Ready to send"}
+              {!hasFiles && t('tasking.noFiles')}
+              {hasFiles && !prompt.trim() && t('tasking.typeYourMessage')}
+              {hasFiles && prompt.trim() && t('common.loading')}
             </div>
             
             <Button
@@ -111,12 +113,12 @@ export const CompactBriefingChat: React.FC<CompactBriefingChatProps> = ({
               {isGenerating ? (
                 <>
                   <Loader2 className="w-3 h-3 animate-spin mr-1" />
-                  <span className="text-xs">Thinking...</span>
+                  <span className="text-xs">{t('common.loading')}</span>
                 </>
               ) : (
                 <>
                   <Send className="w-3 h-3 mr-1" />
-                  <span className="text-xs">Send</span>
+                  <span className="text-xs">{t('tasking.send')}</span>
                 </>
               )}
             </Button>
